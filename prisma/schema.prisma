@@ -7,22 +7,91 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+
 model User {
-  id Int @id @default(autoincrement())
-  name String @unique
-  email String @unique
-  password String
-  customer Customer? 
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  email     String   @unique
+  password  String
+  customer  Customer?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
 
 model Customer {
-  id Int @id @default(autoincrement())
-  user User @relation(fields: [userId], references: [id])
-  userId Int  @unique
-  contact_no String @unique
-  address String 
+  id         Int      @id @default(autoincrement())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     Int      @unique
+  contact_no String   @unique
+  address    String
+  cart       Cart?
+  order      Order[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Product {
+  id              Int        @id @default(autoincrement())
+  name            String
+  manufactured_by String
+  unit_price      Int
+  sale_price      Int
+  quantity        String
+  sku             String
+  thumbnail       String
+  cart_item       CartItem[]
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt  
+}
+
+model CartItem {
+  id        Int      @id @default(autoincrement())
+  product   Product  @relation(fields: [productId], references: [id])
+  productId Int
+  quantity  String
+  cart      Cart     @relation(fields: [cartId], references: [id])
+  cartId    Int
   createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updatedAt DateTime @updatedAt  
+}
+
+model Cart {
+  id          Int        @id @default(autoincrement())
+  cart_items  CartItem[]
+  customer    Customer   @relation(fields: [customerId], references: [id])
+  customerId  Int        @unique
+  total_amount Int
+  order       Order?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+//sale order confirm hole dekhabe processing
+model Order {
+  id              Int        @id @default(autoincrement())
+  ordered_items   Cart       @relation(fields: [cartId], references: [id])
+  cartId          Int        @unique
+  customer        Customer   @relation(fields: [customerId], references: [id])
+  customerId      Int
+  order_amount    Int
+  order_date      DateTime   @default(now())
+  order_status    String     @default("accepted") 
+  shipping_address String
+  sale_order      SaleOrder?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+}
+
+// delivery hoye gele delivered dekhabe
+model SaleOrder {
+  id            Int      @id @default(autoincrement())
+  order         Order    @relation(fields: [orderId], references: [id])
+  orderId       Int      @unique
+  total_amount  Int
+  paid          Int
+  due           Int
+  sale_date     DateTime @default(now())
+  order_status  String   @default("ongoing")
+  createdAt     DateTime @default(now())
+  updatedAt       DateTime   @updatedAt
 }
