@@ -1,7 +1,7 @@
 import { Body, Controller, Post, Res, UsePipes } from '@nestjs/common';
 import { Response } from 'express';
 import { UserService } from './user.service';
-import { CreateUserDto, UserApiResponse } from 'src/dto/user.dto';
+import { CreateUserDto, LoginDto, UserApiResponse } from 'src/dto/user.dto';
 import { CustomValidationPipe } from 'src/pipes/validation-exception.pipes';
 
 @Controller('user')
@@ -27,6 +27,27 @@ export class UserController {
         }
         res.json(apiResponse);
       }
+    } catch (error) {
+      console.log(error);
+      const apiResponse: UserApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      res.json(apiResponse);
+    }
+  };
+
+  @Post('/login')
+  @UsePipes(CustomValidationPipe)
+  async loginUser(@Body() reqBody: LoginDto, @Res() res: Response) {
+    try {
+      const result = await this.userService.userLogin(reqBody);
+      const apiResponse: UserApiResponse = {
+        message: result.message,
+        token: result.statusCode === 200 && result.token,
+        statusCode: result.statusCode
+      }
+      res.json(apiResponse);
     } catch (error) {
       console.log(error);
       const apiResponse: UserApiResponse = {

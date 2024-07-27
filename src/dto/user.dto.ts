@@ -1,4 +1,5 @@
 import { IsEmail, Length, IsNotEmpty } from 'class-validator';
+import { PartialType } from '@nestjs/mapped-types';
 import { IsEmailExist } from 'src/custom-validation/IsEmailExist';
 
 export class CreateUserDto {
@@ -22,9 +23,18 @@ export class CreateUserDto {
   confirmPassword: string;
 }
 
+export class LoginDto extends PartialType(CreateUserDto) {
+  @IsNotEmpty({message: 'Email is required'})
+  email: string;
+
+  @IsNotEmpty({message: 'Password is required'})
+  password: string;
+}
+
 export class UserApiResponse {
   message: string;
-  user?: UserDto
+  user?: UserDto;
+  token?: string;
   statusCode: number;
 }
 
