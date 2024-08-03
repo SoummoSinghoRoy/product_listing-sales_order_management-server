@@ -31,11 +31,23 @@ export class LoginDto extends PartialType(CreateUserDto) {
   password: string;
 }
 
+export class UpdatePasswordDto {
+  @IsNotEmpty({message: 'Previous password is required'})
+  oldPassword: string;
+
+  @IsNotEmpty({message: 'New Password is required'})
+  @Length(4, 8, {
+    message: 'Password length min 4 and max 8'
+  })
+  newPassword: string;
+}
+
 export class UserApiResponse {
   message: string;
   user?: UserDto;
   token?: string;
   statusCode: number;
+  authenticated?: true | false;
 }
 
 export class UserDto {

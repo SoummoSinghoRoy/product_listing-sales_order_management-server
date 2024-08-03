@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import * as bcrypt from 'bcrypt';
-import { CreateUserDto, LoginDto, UserApiResponse } from 'src/dto/user.dto';
-import { JwtAuthService } from './jwt/jwt.service';
+import { CreateUserDto, LoginDto, UpdatePasswordDto, UserApiResponse } from 'src/dto/user.dto';
+import { JwtAuthService } from 'src/jwt/jwt.service';
 
 @Injectable()
 export class UserService {
@@ -45,7 +45,7 @@ export class UserService {
         where: {
           email: loginreqData.email
         }
-      })
+      });
       if(validUser) {
         const match = await bcrypt.compare(loginreqData.password, validUser.password);
         if(match) {
@@ -58,6 +58,7 @@ export class UserService {
           const result: UserApiResponse = {
             message: `Logged in successfully`,
             token: `Bearer ${token}`,
+            authenticated: true,
             statusCode: 200
           }
           return result;
@@ -74,6 +75,65 @@ export class UserService {
           statusCode: 401
         }
         return result;
+      }
+    } catch (error) {
+      console.log(error);
+      const result: UserApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      return result;
+    }
+  }
+  async userLogout() {
+    try {
+      const result: UserApiResponse = {
+        message: `Successfully loggedout`,
+        authenticated: false,
+        statusCode: 200
+      }
+      return result;
+    } catch (error) {
+      console.log(error);
+      const result: UserApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      return result;
+    }
+  }
+
+  async userPasswordUpdate(updateReqData: UpdatePasswordDto, email: string) {
+    try {
+      const validUser = await this.prismaDB.user.findUnique({
+        where: {
+          email: email
+        }
+      });
+      if(validUser) {
+        const match = await bcrypt.compare(updateReqData.oldPassword, validUser.password);
+        if(match) {
+          const hashedPassword = await bcrypt.hash(updateReqData.newPassword, 8);
+          await this.prismaDB.user.update({
+            where: {
+              email: validUser.email
+            },
+            data: {
+              password: hashedPassword
+            }
+          });
+          const result: UserApiResponse = {
+            message: `Updated successfully`,
+            statusCode: 200
+          }
+          return result;
+        } else {
+          const result: UserApiResponse = {
+            message: `Incorrect password`,
+            statusCode: 404
+          }
+          return result; 
+        }
       }
     } catch (error) {
       console.log(error);
