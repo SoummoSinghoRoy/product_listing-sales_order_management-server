@@ -3,6 +3,7 @@ import { DatabaseService } from 'src/database/database.service';
 import * as bcrypt from 'bcrypt';
 import { CreateUserDto, LoginDto, UpdatePasswordDto, UserApiResponse } from 'src/dto/user.dto';
 import { JwtAuthService } from 'src/jwt/jwt.service';
+import { CustomerApiResponse } from 'src/dto/customer.dto';
 
 @Injectable()
 export class UserService {
@@ -17,7 +18,8 @@ export class UserService {
         data: {
           name: createReqData.name,
           email: createReqData.email,
-          password: hashedPassword
+          password: hashedPassword,
+          role: createReqData.role
         }
       })
       const result: UserApiResponse = {
@@ -26,7 +28,8 @@ export class UserService {
         user: {
           id: user.id,
           name: user.name,
-          email: user.email
+          email: user.email,
+          role: user.role
         }
       }
       return result;
@@ -44,24 +47,47 @@ export class UserService {
       const validUser = await this.prismaDB.user.findUnique({
         where: {
           email: loginreqData.email
+        },
+        include: {
+          customer: true
         }
       });
       if(validUser) {
         const match = await bcrypt.compare(loginreqData.password, validUser.password);
         if(match) {
-          const payload = {
-            id: validUser.id,
-            name: validUser.name,
-            email: validUser.email
+          if(validUser.role === 'customer') {
+            const payload = {
+              id: validUser.id,
+              customerId: validUser.customer.userId,
+              name: validUser.name,
+              email: validUser.email,
+              role: validUser.role
+            }
+            const token = await this.jwtService.generateToken(payload);
+            const result: CustomerApiResponse = {
+              message: `Logged in successfully`,
+              token: `Bearer ${token}`,
+              authenticated: true,
+              statusCode: 200
+              // here will be include order & cart of customer
+            }
+            return result;
+          } else if(validUser.role === 'admin') {
+            const payload = {
+              id: validUser.id,
+              name: validUser.name,
+              email: validUser.email,
+              role: validUser.role
+            }
+            const token = await this.jwtService.generateToken(payload);
+            const result: UserApiResponse = {
+              message: `Logged in successfully`,
+              token: `Bearer ${token}`,
+              authenticated: true,
+              statusCode: 200
+            }
+            return result;
           }
-          const token = await this.jwtService.generateToken(payload);
-          const result: UserApiResponse = {
-            message: `Logged in successfully`,
-            token: `Bearer ${token}`,
-            authenticated: true,
-            statusCode: 200
-          }
-          return result;
         } else {
           const result: UserApiResponse = {
             message: `Incorrect password`,
@@ -84,7 +110,7 @@ export class UserService {
       }
       return result;
     }
-  }
+  };
   async userLogout() {
     try {
       const result: UserApiResponse = {

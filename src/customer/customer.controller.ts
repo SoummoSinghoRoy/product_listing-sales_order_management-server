@@ -1,5 +1,5 @@
-import { Body, Controller, Post, Res, UsePipes } from '@nestjs/common';
-import { Response } from 'express';
+import { Body, Controller, Post, Req, Res, UsePipes } from '@nestjs/common';
+import { Response, Request } from 'express';
 import { CustomerService } from './customer.service';
 import { CreateCustomerDto, CustomerApiResponse } from 'src/dto/customer.dto';
 import { CustomValidationPipe } from 'src/pipes/validation-exception.pipes';
@@ -10,16 +10,19 @@ export class CustomerController {
 
   @Post('/add')
   @UsePipes(CustomValidationPipe)
-  async addCustomer(@Body() reqBody: CreateCustomerDto, @Res() res: Response) {
+  async addCustomer(@Body() reqBody: CreateCustomerDto, @Req() req: Request, @Res() res: Response) {
     try {
       if(reqBody.password === reqBody.confirmPassword) {
-        const result = await this.customerService.createCustomer(reqBody);
-        const apiResponse: CustomerApiResponse = {
-          message: result.message,
-          customer: result.statusCode === 200 && result.customer,
-          statusCode: result.statusCode,
+        if(req.path === '/api/customer/add') {
+          const customerReqBody = { ...reqBody, role: 'customer' };
+          const result = await this.customerService.createCustomer(customerReqBody);
+          const apiResponse: CustomerApiResponse = {
+            message: result.message,
+            customer: result.statusCode === 200 && result.customer,
+            statusCode: result.statusCode,
+          }
+          res.json(apiResponse);
         }
-        res.json(apiResponse);
       } else {
         const apiResponse: CustomerApiResponse = {
           message: `Confirm password doesn't match with password`,

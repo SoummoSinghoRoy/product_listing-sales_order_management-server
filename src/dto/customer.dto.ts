@@ -1,6 +1,6 @@
 import { IsNotEmpty } from "class-validator";
 import { PartialType } from "@nestjs/mapped-types";
-import { CreateUserDto, UserDto } from "./user.dto";
+import { CreateUserDto, UserApiResponse, UserDto } from "./user.dto";
 
 
 export class CreateCustomerDto extends PartialType(CreateUserDto)  {
@@ -11,7 +11,7 @@ export class CreateCustomerDto extends PartialType(CreateUserDto)  {
   address: string;
 }
 
-export class CustomerApiResponse {
+export class CustomerApiResponse extends UserApiResponse {
   message: string;
   customer?: CustomerDto;
   statusCode: number;

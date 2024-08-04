@@ -21,6 +21,8 @@ export class CreateUserDto {
 
   @IsNotEmpty({message: 'Confirm password is required'})
   confirmPassword: string;
+
+  role: string;
 }
 
 export class LoginDto extends PartialType(CreateUserDto) {
@@ -54,4 +56,5 @@ export class UserDto {
   id: number;
   name: string;
   email: string;
+  role: string;
 }

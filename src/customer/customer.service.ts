@@ -19,6 +19,7 @@ export class CustomerService {
               name: customerReqData.name,
               email: customerReqData.email,
               password: hashedPassword,
+              role: customerReqData.role
             }
           }
         },
@@ -34,6 +35,7 @@ export class CustomerService {
           name: customerAsUser.user.name,
           email: customerAsUser.user.email,
           contact_no: customerAsUser.contact_no,
+          role: customerAsUser.user.role
         }
       }
       return result; 
@@ -45,5 +47,6 @@ export class CustomerService {
       }
       return result;
     }
-  }
+  };
+  async customerDataUpdate(updateReqData) {}
 }

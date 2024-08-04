@@ -3,24 +3,27 @@ import { Response, Request } from 'express';
 import { UserService } from './user.service';
 import { CreateUserDto, LoginDto, UpdatePasswordDto, UserApiResponse } from 'src/dto/user.dto';
 import { CustomValidationPipe } from 'src/pipes/validation-exception.pipes';
-import { AuthGuard } from 'src/guards/auth.guard';
+import { AuthGuard } from '../guards/auth.guard';
 
 @Controller('user')
 export class UserController {
-  constructor(private readonly userService: UserService) { }
+  constructor(private readonly userService: UserService) {}
 
   @Post('/sign-up')
   @UsePipes(CustomValidationPipe)
-  async addUser(@Body() reqBody: CreateUserDto, @Res() res: Response) {
+  async addUser(@Body() reqBody: CreateUserDto, @Req() req: Request, @Res() res: Response) {
     try {
       if (reqBody.password === reqBody.confirmPassword) {
-        const result = await this.userService.createUser(reqBody);
-        const apiResponse: UserApiResponse = {
-          message: result.message,
-          user: result.statusCode === 200 && result.user,
-          statusCode: result.statusCode,
+        if(req.path === '/api/user/sign-up') {
+          const userReqBody = { ...reqBody, role: 'admin' };
+          const result = await this.userService.createUser(userReqBody);
+          const apiResponse: UserApiResponse = {
+            message: result.message,
+            user: result.statusCode === 200 && result.user,
+            statusCode: result.statusCode,
+          }
+          res.json(apiResponse);
         }
-        res.json(apiResponse);
       } else {
         const apiResponse: UserApiResponse = {
           message: `Confirm password doesn't match with password`,
