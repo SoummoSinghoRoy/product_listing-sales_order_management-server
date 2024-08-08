@@ -33,7 +33,8 @@ model Customer {
 model Product {
   id              Int        @id @default(autoincrement())
   name            String
-  manufactured_by String
+  description     String
+  brand           String
   unit_price      Int
   sale_price      Int
   quantity        String
@@ -43,6 +44,8 @@ model Product {
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt  
 }
+
+// I can consider products should be apparel
 
 model CartItem {
   id        Int      @id @default(autoincrement())

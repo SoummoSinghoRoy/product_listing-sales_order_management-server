@@ -17,7 +17,7 @@ export class JwtAuthService {
     }
   }
 
-  async verifyToken(token: string) {
+  async verifyToken(token: any) {
     try {
       const decoded = await this.jwtService.verifyAsync(token, {
         secret: process.env.SECRET

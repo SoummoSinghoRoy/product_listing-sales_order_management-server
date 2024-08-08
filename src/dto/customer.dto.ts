@@ -11,6 +11,8 @@ export class CreateCustomerDto extends PartialType(CreateUserDto)  {
   address: string;
 }
 
+export class UpdateCustomerDto extends PartialType(CreateCustomerDto) {}
+
 export class CustomerApiResponse extends UserApiResponse {
   message: string;
   customer?: CustomerDto;
@@ -18,7 +20,8 @@ export class CustomerApiResponse extends UserApiResponse {
 }
 
 export class CustomerDto extends UserDto {
-  contact_no: string;
+  contact_no?: string;
+  address?: string;
   cart?: any; // that'll be updated by cartdto
   order?: any; // that'll be updated by orderdto
 }

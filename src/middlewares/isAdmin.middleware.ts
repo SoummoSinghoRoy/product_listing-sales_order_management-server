@@ -1,16 +1,37 @@
 import { Injectable, NestMiddleware } from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
+import { JwtAuthService } from '../jwt/jwt.service';
 
 @Injectable()
 export class IsAdminMiddleware implements NestMiddleware {
-  use(req: Request, res: Response, next: NextFunction) {
-    const user = req['user'];
-    if(user && user.role === 'admin') {
-      next()
-    } else {
-      const apiResponse = {
-        message: `Access restricted`,
-        statusCode: 403 
+  constructor(private jwtAuthService: JwtAuthService) {}
+  async use(req: Request, res: Response, next: NextFunction) {
+    try {
+      const authorizedToken = req.headers['authorization'];
+      const tokenParts = authorizedToken.split(' ');
+      const token = tokenParts[1];
+      if(token) {
+        const payload = await this.jwtAuthService.verifyToken(token);
+        if(payload && payload.role === 'admin') {
+          req['user'] = payload;
+          next()
+        } else {
+          const apiResponse = {
+            message: `Access restricted`,
+            statusCode: 403 
+          }
+          res.json(apiResponse);
+        }
+      }
+      return false;
+    } catch (error) {
+      console.log(error);
+      const apiResponse: {
+        message: string,
+        statusCode: number
+      } = {
+        message: `Internal server error`,
+        statusCode: 500
       }
       res.json(apiResponse);
     }

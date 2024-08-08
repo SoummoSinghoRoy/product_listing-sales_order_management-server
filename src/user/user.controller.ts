@@ -86,17 +86,26 @@ export class UserController {
       console.log(error);
     }
   };
-  @Patch('/update')
-  @UseGuards(AuthGuard)
+  @Patch('/update/:id')
   @UsePipes(CustomValidationPipe)
   async updatePassword(@Body() reqBody: UpdatePasswordDto, @Req() req: Request, @Res() res: Response) {
+    const { id } = req.params;
+    const user = req['user'];
     try {
-      const result = await this.userService.userPasswordUpdate(reqBody, req['user'].email)
-      const apiResponse: UserApiResponse = {
-        message: result.message,
-        statusCode: result.statusCode,
+      if(user.id === parseInt(id)) {
+        const result = await this.userService.userPasswordUpdate(reqBody, id)
+        const apiResponse: UserApiResponse = {
+          message: result.message,
+          statusCode: result.statusCode,
+        }
+        res.json(apiResponse);
+      } else {
+        const apiResponse: UserApiResponse = {
+          message: `Request forbidden`,
+          statusCode: 403
+        }
+        res.json(apiResponse);
       }
-      res.json(apiResponse);
     } catch (error) {
       console.log(error);
       const apiResponse: UserApiResponse = {

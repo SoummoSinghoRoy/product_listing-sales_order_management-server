@@ -51,14 +51,14 @@ export class UserService {
         include: {
           customer: true
         }
-      });
+      });      
       if(validUser) {
         const match = await bcrypt.compare(loginreqData.password, validUser.password);
         if(match) {
           if(validUser.role === 'customer') {
             const payload = {
               id: validUser.id,
-              customerId: validUser.customer.userId,
+              customerId: validUser.customer.id,
               name: validUser.name,
               email: validUser.email,
               role: validUser.role
@@ -129,11 +129,11 @@ export class UserService {
     }
   }
 
-  async userPasswordUpdate(updateReqData: UpdatePasswordDto, email: string) {
+  async userPasswordUpdate(updateReqData: UpdatePasswordDto, userId: string) {
     try {
       const validUser = await this.prismaDB.user.findUnique({
         where: {
-          email: email
+          id: parseInt(userId)
         }
       });
       if(validUser) {

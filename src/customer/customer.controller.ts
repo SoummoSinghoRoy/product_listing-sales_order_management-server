@@ -1,7 +1,7 @@
-import { Body, Controller, Post, Req, Res, UsePipes } from '@nestjs/common';
+import { Body, Controller, Patch, Post, Req, Res, UseGuards, UsePipes } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { CustomerService } from './customer.service';
-import { CreateCustomerDto, CustomerApiResponse } from 'src/dto/customer.dto';
+import { CreateCustomerDto, CustomerApiResponse, UpdateCustomerDto } from 'src/dto/customer.dto';
 import { CustomValidationPipe } from 'src/pipes/validation-exception.pipes';
 
 @Controller('customer')
@@ -27,6 +27,36 @@ export class CustomerController {
         const apiResponse: CustomerApiResponse = {
           message: `Confirm password doesn't match with password`,
           statusCode: 400
+        }
+        res.json(apiResponse);
+      }
+    } catch (error) {
+      console.log(error);
+      const apiResponse: CustomerApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      res.json(apiResponse);
+    }
+  }
+  @Patch('/edit/:id')
+  @UsePipes(CustomValidationPipe)
+  async updateCustomer(@Body() reqbody: UpdateCustomerDto, @Req() req: Request, @Res() res: Response) {
+    let { id } = req.params;
+    const user = req['user'];
+    try {
+      if(user.customerId === parseInt(id)) {
+        const result = await this.customerService.editCustomer(reqbody, id, user.id);
+        const apiResponse: CustomerApiResponse = {
+          message: result.message,
+          customer: result.statusCode === 200 && result.customer,
+          statusCode: result.statusCode,
+        }
+        res.json(apiResponse);
+      } else {
+        const apiResponse: CustomerApiResponse = {
+          message: `Request forbidden`,
+          statusCode: 403
         }
         res.json(apiResponse);
       }

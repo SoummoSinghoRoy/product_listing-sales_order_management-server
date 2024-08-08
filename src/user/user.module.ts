@@ -13,7 +13,7 @@ export class UserModule implements NestModule {
     consumer
             .apply(IsAdminMiddleware)
             .forRoutes(
-              { path: 'user/update', method: RequestMethod.PATCH }
+              { path: 'user/update/:id', method: RequestMethod.PATCH }
             )
   }
 }

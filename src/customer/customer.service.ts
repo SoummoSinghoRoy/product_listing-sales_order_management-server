@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { DatabaseService } from 'src/database/database.service';
-import { CreateCustomerDto, CustomerApiResponse } from 'src/dto/customer.dto';
+import { CreateCustomerDto, CustomerApiResponse, UpdateCustomerDto } from 'src/dto/customer.dto';
 
 @Injectable()
 export class CustomerService {
@@ -35,6 +35,7 @@ export class CustomerService {
           name: customerAsUser.user.name,
           email: customerAsUser.user.email,
           contact_no: customerAsUser.contact_no,
+          address: customerAsUser.address,
           role: customerAsUser.user.role
         }
       }
@@ -48,5 +49,50 @@ export class CustomerService {
       return result;
     }
   };
-  async customerDataUpdate(updateReqData) {}
+  async editCustomer(updateReqData: UpdateCustomerDto, customerId: string, userId: string) {
+    try {
+      const hashedPassword = await bcrypt.hash(updateReqData.password, 8);
+      const updatedCustomerWithUser = await this.primsaDB.customer.update({
+        where: {
+          id: parseInt(customerId)
+        },
+        data: {
+          contact_no: updateReqData.contact_no,
+          address: updateReqData.address,
+          user: {
+            update: {
+              where: {
+                id: parseInt(userId)
+              },
+              data: {
+                name: updateReqData.name,
+                password: hashedPassword
+              }
+            }
+          }
+        },
+        include: {
+          user: true
+        }
+      });
+      const result: CustomerApiResponse = {
+        message: `Successfully updated`,
+        statusCode: 200,
+        customer: {
+          id: updatedCustomerWithUser.id,
+          name: updatedCustomerWithUser.user.name,
+          contact_no: updatedCustomerWithUser.contact_no,
+          address: updatedCustomerWithUser.address
+        }
+      }
+      return result; 
+    } catch (error) {
+      console.log(error);
+      const result: CustomerApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      return result;
+    }
+  }
 }
