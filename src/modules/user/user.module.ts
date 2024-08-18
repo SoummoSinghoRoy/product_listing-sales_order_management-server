@@ -1,7 +1,7 @@
 import { Module, NestModule, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
 import { UserService } from './user.service';
 import { UserController } from './user.controller';
-import { JwtAuthService } from '../jwt/jwt.service';
+import { JwtAuthService } from '../../jwt/jwt.service';
 import { IsAdminMiddleware } from 'src/middlewares/isAdmin.middleware';
 
 @Module({

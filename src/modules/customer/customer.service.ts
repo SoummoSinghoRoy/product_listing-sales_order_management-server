@@ -7,7 +7,7 @@ import { CreateCustomerDto, CustomerApiResponse, UpdateCustomerDto } from 'src/d
 export class CustomerService {
   constructor(private primsaDB: DatabaseService) {}
 
-  async createCustomer(customerReqData: CreateCustomerDto) {
+  async createCustomer(customerReqData: CreateCustomerDto): Promise<CustomerApiResponse> {
     try {
       const hashedPassword = await bcrypt.hash(customerReqData.password, 8);
       const customerAsUser = await this.primsaDB.customer.create({
@@ -49,7 +49,7 @@ export class CustomerService {
       return result;
     }
   };
-  async editCustomer(updateReqData: UpdateCustomerDto, customerId: string, userId: string) {
+  async editCustomer(updateReqData: UpdateCustomerDto, customerId: string, userId: string): Promise<CustomerApiResponse> {
     try {
       const hashedPassword = await bcrypt.hash(updateReqData.password, 8);
       const updatedCustomerWithUser = await this.primsaDB.customer.update({

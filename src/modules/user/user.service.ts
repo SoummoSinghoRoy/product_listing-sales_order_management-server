@@ -11,7 +11,7 @@ export class UserService {
     private prismaDB: DatabaseService,
     private jwtService: JwtAuthService
   ) {}
-  async createUser(createReqData: CreateUserDto) {
+  async createUser(createReqData: CreateUserDto): Promise<UserApiResponse> {
     try {
       const hashedPassword = await bcrypt.hash(createReqData.password, 8);
       const user = await this.prismaDB.user.create({
@@ -42,7 +42,7 @@ export class UserService {
       return result;
     }
   };
-  async userLogin(loginreqData: LoginDto) {
+  async userLogin(loginreqData: LoginDto): Promise<CustomerApiResponse | UserApiResponse> {
     try {
       const validUser = await this.prismaDB.user.findUnique({
         where: {
@@ -111,7 +111,7 @@ export class UserService {
       return result;
     }
   };
-  async userLogout() {
+  async userLogout(): Promise<UserApiResponse> {
     try {
       const result: UserApiResponse = {
         message: `Successfully loggedout`,
@@ -129,7 +129,7 @@ export class UserService {
     }
   }
 
-  async userPasswordUpdate(updateReqData: UpdatePasswordDto, userId: string) {
+  async userPasswordUpdate(updateReqData: UpdatePasswordDto, userId: string): Promise<UserApiResponse> {
     try {
       const validUser = await this.prismaDB.user.findUnique({
         where: {

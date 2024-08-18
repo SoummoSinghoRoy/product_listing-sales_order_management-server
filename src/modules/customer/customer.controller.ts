@@ -1,8 +1,8 @@
-import { Body, Controller, Patch, Post, Req, Res, UseGuards, UsePipes } from '@nestjs/common';
+import { Body, Controller, Patch, Post, Req, Res, UsePipes } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { CustomerService } from './customer.service';
 import { CreateCustomerDto, CustomerApiResponse, UpdateCustomerDto } from 'src/dto/customer.dto';
-import { CustomValidationPipe } from 'src/pipes/validation-exception.pipes';
+import { CustomValidationPipe } from 'src/pipes/validation.pipes';
 
 @Controller('customer')
 export class CustomerController {
@@ -10,7 +10,7 @@ export class CustomerController {
 
   @Post('/add')
   @UsePipes(CustomValidationPipe)
-  async addCustomer(@Body() reqBody: CreateCustomerDto, @Req() req: Request, @Res() res: Response) {
+  async addCustomer(@Body() reqBody: CreateCustomerDto, @Req() req: Request, @Res() res: Response): Promise<void> {
     try {
       if(reqBody.password === reqBody.confirmPassword) {
         if(req.path === '/api/customer/add') {
@@ -41,7 +41,7 @@ export class CustomerController {
   }
   @Patch('/edit/:id')
   @UsePipes(CustomValidationPipe)
-  async updateCustomer(@Body() reqbody: UpdateCustomerDto, @Req() req: Request, @Res() res: Response) {
+  async updateCustomer(@Body() reqbody: UpdateCustomerDto, @Req() req: Request, @Res() res: Response): Promise<void> {
     let { id } = req.params;
     const user = req['user'];
     try {

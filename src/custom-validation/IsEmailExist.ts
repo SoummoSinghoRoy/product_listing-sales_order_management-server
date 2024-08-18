@@ -8,7 +8,7 @@ export class IsEmailExistConstraint implements ValidatorConstraintInterface {
   constructor(private readonly prismaDB: DatabaseService) {}
   async validate(email: string, args: ValidationArguments) {
     try {
-      const user = await this.prismaDB.user.findUnique({
+      const user: object | null = await this.prismaDB.user.findUnique({
         where: {
           email: email
         }

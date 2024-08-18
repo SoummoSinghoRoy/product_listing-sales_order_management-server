@@ -32,12 +32,13 @@ model Customer {
 
 model Product {
   id              Int        @id @default(autoincrement())
-  name            String
-  description     String
+  name            String     @unique
+  description     String?
   brand           String
   unit_price      Int
   sale_price      Int
-  quantity        String
+  quantity        Int
+  measureType     String
   sku             String
   thumbnail       String
   cart_item       CartItem[]

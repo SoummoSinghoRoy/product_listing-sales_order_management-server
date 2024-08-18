@@ -1,1 +1,35 @@
-// description should be optional. When handle db if description not provide then that'll be null 
+export class CreateProductDto {
+  name: string;
+  brand: string;
+  unit_price: string;
+  sale_price: string;
+  quantity: string;
+  measureType: string;
+  sku: string;
+  description?: string;
+}
+
+export class DtoValidationResult {
+  error: object;
+  isValid: boolean;
+}
+
+export class ProductApiResponse {
+  message: string;
+  product?: ProductDto | ProductDto[];
+  error?: object;
+  statusCode: number;
+}
+
+export class ProductDto {
+  id: number;
+  name: string;
+  description: string;
+  brand: string;
+  unit_price: number;
+  sale_price: number;
+  quantity: number;
+  measureType: string;
+  sku: string;
+  thumbnail: string;
+}

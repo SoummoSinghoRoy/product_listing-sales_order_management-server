@@ -2,8 +2,8 @@ import { Body, Controller, Patch, Post, Req, Res, UseGuards, UsePipes } from '@n
 import { Response, Request } from 'express';
 import { UserService } from './user.service';
 import { CreateUserDto, LoginDto, UpdatePasswordDto, UserApiResponse } from 'src/dto/user.dto';
-import { CustomValidationPipe } from 'src/pipes/validation-exception.pipes';
-import { AuthGuard } from '../guards/auth.guard';
+import { CustomValidationPipe } from 'src/pipes/validation.pipes';
+import { AuthGuard } from '../../guards/auth.guard';
 
 @Controller('user')
 export class UserController {
@@ -11,7 +11,7 @@ export class UserController {
 
   @Post('/sign-up')
   @UsePipes(CustomValidationPipe)
-  async addUser(@Body() reqBody: CreateUserDto, @Req() req: Request, @Res() res: Response) {
+  async addUser(@Body() reqBody: CreateUserDto, @Req() req: Request, @Res() res: Response): Promise<void> {
     try {
       if (reqBody.password === reqBody.confirmPassword) {
         if(req.path === '/api/user/sign-up') {
@@ -43,7 +43,7 @@ export class UserController {
 
   @Post('/login')
   @UsePipes(CustomValidationPipe)
-  async loginUser(@Body() reqBody: LoginDto, @Res() res: Response) {
+  async loginUser(@Body() reqBody: LoginDto, @Res() res: Response): Promise<void> {
     try {
       const result = await this.userService.userLogin(reqBody);
       const apiResponse: UserApiResponse = {
@@ -64,7 +64,7 @@ export class UserController {
 
   @Post('/logout')
   @UseGuards(AuthGuard)
-  async logoutUser(@Req() req: Request, @Res() res: Response) {
+  async logoutUser(@Req() req: Request, @Res() res: Response): Promise<void> {
     try {
       if(req['user']) {
         delete req['user']; 
@@ -88,7 +88,7 @@ export class UserController {
   };
   @Patch('/update/:id')
   @UsePipes(CustomValidationPipe)
-  async updatePassword(@Body() reqBody: UpdatePasswordDto, @Req() req: Request, @Res() res: Response) {
+  async updatePassword(@Body() reqBody: UpdatePasswordDto, @Req() req: Request, @Res() res: Response): Promise<void> {
     const { id } = req.params;
     const user = req['user'];
     try {
