@@ -6,7 +6,7 @@ import { CreateProductDto, DtoValidationResult } from "src/dto/product.dto";
 export class ProductValidationService {
   constructor(private readonly prismaDB: DatabaseService) {}
 
-  async createValidation(reqBody: CreateProductDto, reqFile: any): Promise<DtoValidationResult> {
+  private async baseValidation(reqBody: CreateProductDto, reqFile: any, checkExistingProduct: boolean): Promise<DtoValidationResult> {
     let error: { [field: string]: string } = {};
 
     if(!reqBody.name) {
@@ -41,20 +41,31 @@ export class ProductValidationService {
       error.thumbnail = `Thumbnail is required`
     }
 
-    const existProduct = await this.prismaDB.product.findUnique({
-      where: {
-        name: reqBody.name
+    if(checkExistingProduct) {
+      const existProduct = await this.prismaDB.product.findUnique({
+        where: {
+          name: reqBody.name
+        }
+      });
+      if(existProduct) {
+        error.name = `Product already exist`
       }
-    });
-    if(existProduct) {
-      error.name = `Product already exist`
     }
 
     return {
       error,
       isValid: Object.keys(error).length === 0
     }
+  };
+
+  async createProductValidation(createReqBody: CreateProductDto, createReqFile: any): Promise<DtoValidationResult> {
+    return this.baseValidation(createReqBody, createReqFile, true);
   }
+
+  async editProductValdiation(editReqBody: CreateProductDto, editReqFile: any): Promise<DtoValidationResult> {
+    return this.baseValidation(editReqBody, editReqFile, false);
+  }
+
 }
 
 export default ProductValidationService;

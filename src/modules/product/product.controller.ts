@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Query, Res, UploadedFile, UseInterceptors, UsePipes } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Put, Query, Res, UploadedFile, UseInterceptors, UsePipes } from '@nestjs/common';
 import { Response, Express } from 'express';
 import { ProductService } from './product.service';
 import { CreateProductDto, ProductApiResponse } from 'src/dto/product.dto';
@@ -15,7 +15,7 @@ export class ProductController {
   @UseInterceptors(FileInterceptor('thumbnail', {storage}))
   async addProduct (@UploadedFile() file: Express.Multer.File, @Body() reqBody: CreateProductDto, @Res() res: Response): Promise<void> {
     try {
-      const validationResult = await this.productValidationService.createValidation(reqBody, file);
+      const validationResult = await this.productValidationService.createProductValidation(reqBody, file);
       if(!file && !validationResult.isValid) {
         const apiResponse: ProductApiResponse = {
           message: `Validation error`,
@@ -96,4 +96,21 @@ export class ProductController {
       res.json(apiResponse);
     }
   };
+  @Put('/edit/:id')
+  @UseInterceptors(FileInterceptor('thumbnail', {storage}))
+  async editProduct(@Param() params: any, @UploadedFile() file: Express.Multer.File, @Body() reqBody: CreateProductDto, @Res() res: Response): Promise<void> {
+    try {
+      console.log(params.id);
+    } catch (error) {
+      console.log(error);
+      const apiResponse: ProductApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      res.json(apiResponse);
+    }
+  }
+
+  // here need to implement stock quanity update functionality. For update quanity only take product id.
+  // when quantity will be updated updated quanity number will be merged or concat with previous quanity.
 }

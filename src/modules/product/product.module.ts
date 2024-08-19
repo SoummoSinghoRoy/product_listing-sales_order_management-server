@@ -13,7 +13,8 @@ export class ProductModule implements NestModule {
     consumer
             .apply(IsAdminMiddleware)
             .forRoutes(
-              { path: 'product/add', method: RequestMethod.POST }
+              { path: 'product/add', method: RequestMethod.POST },
+              { path: 'product/edit/:id', method: RequestMethod.PUT }
             )
   }
 }

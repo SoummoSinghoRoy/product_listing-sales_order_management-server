@@ -8,7 +8,7 @@ export class ProductService {
 
   async createProduct(productCreateReqData: CreateProductDto, productFile: Express.Multer.File): Promise<ProductApiResponse> {
     try {
-      const unitPrice_StrinngToNumber = parseInt(productCreateReqData.unit_price);
+      const unitPrice_StringToNumber = parseInt(productCreateReqData.unit_price);
       const salePrice_StringToNumber = parseInt(productCreateReqData.sale_price);
       const quantity_StringToNumber = parseInt(productCreateReqData.quantity);
 
@@ -17,7 +17,7 @@ export class ProductService {
           name: productCreateReqData.name,
           description: productCreateReqData.description.length !== 0 ? productCreateReqData.description : null,
           brand: productCreateReqData.brand,
-          unit_price: unitPrice_StrinngToNumber,
+          unit_price: unitPrice_StringToNumber,
           sale_price: salePrice_StringToNumber,
           quantity: quantity_StringToNumber,
           measureType: productCreateReqData.measureType,
@@ -103,6 +103,18 @@ export class ProductService {
         }
       }
       return result;
+    } catch (error) {
+      console.log(error);
+      const result: ProductApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      return result;
+    }
+  };
+  async updateProduct(productId: string): Promise<ProductApiResponse> {
+    try {
+      
     } catch (error) {
       console.log(error);
       const result: ProductApiResponse = {
