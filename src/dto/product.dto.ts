@@ -16,7 +16,7 @@ export class DtoValidationResult {
 
 export class ProductApiResponse {
   message: string;
-  product?: ProductDto | ProductDto[];
+  product?: ProductDto | AllProductsDto
   error?: object;
   statusCode: number;
 }
@@ -32,4 +32,10 @@ export class ProductDto {
   measureType: string;
   sku: string;
   thumbnail: string;
+}
+
+export class AllProductsDto {
+  allProducts: ProductDto[];
+  totalProducts: number;
+  totalPages: number;
 }

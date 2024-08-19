@@ -51,6 +51,34 @@ export class ProductService {
       return result;
     }
   };
+  async findAllProducts(pageNumber: string):Promise<ProductApiResponse> {
+    try {
+      const productsPerPage = 2;
+      const page = parseInt(pageNumber) || 1;
+      const products = await this.prismaDB.product.findMany({
+        skip: (page - 1) * productsPerPage,
+        take: productsPerPage
+      });
+      const totalProducts = await this.prismaDB.product.count();
+      const result: ProductApiResponse = {
+        message: `Products retrieved successfully`,
+        statusCode: 200,
+        product: {
+          allProducts: products,
+          totalProducts,
+          totalPages: Math.ceil(totalProducts/productsPerPage)
+        }
+      }
+      return result;
+    } catch (error) {
+      console.log(error);
+      const result: ProductApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      return result;
+    }
+  };
   async findSingleProduct(productId: string): Promise<ProductApiResponse> {
     try {
       const product = await this.prismaDB.product.findUnique({

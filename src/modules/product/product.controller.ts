@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, Res, UploadedFile, UseInterceptors, UsePipes } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, Query, Res, UploadedFile, UseInterceptors, UsePipes } from '@nestjs/common';
 import { Response, Express } from 'express';
 import { ProductService } from './product.service';
 import { CreateProductDto, ProductApiResponse } from 'src/dto/product.dto';
@@ -58,6 +58,25 @@ export class ProductController {
       res.json(apiResponse);
     }
   };
+  @Get('/all')
+  async getAllProducts(@Query('pageNumber') pageNumber: string, @Res() res: Response): Promise<void> {
+    try {
+      const result = await this.productService.findAllProducts(pageNumber);
+      const apiResponse: ProductApiResponse = {
+        message: result.message,
+        product: result.statusCode === 200 && result.product,
+        statusCode: result.statusCode,
+      }
+      res.json(apiResponse);
+    } catch (error) {
+      console.log(error);
+      const apiResponse: ProductApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      res.json(apiResponse);
+    }
+  };
   @Get('/single/:id')
   async getSingleProduct(@Param() params: any, @Res() res: Response): Promise<void> {
     try {
@@ -76,5 +95,5 @@ export class ProductController {
       }
       res.json(apiResponse);
     }
-  }
+  };
 }
