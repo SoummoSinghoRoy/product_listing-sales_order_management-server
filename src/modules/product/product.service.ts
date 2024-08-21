@@ -1,10 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
-import { CreateProductDto, ProductApiResponse } from 'src/dto/product.dto';
+import { CreateProductDto, ProductApiResponse, UpdateStockApiResponse } from 'src/dto/product.dto';
+import { unsyncUploadedFile } from 'src/utils/fileUnSync';
 
 @Injectable()
 export class ProductService {
-  constructor(private prismaDB: DatabaseService) {}
+  constructor(private prismaDB: DatabaseService) { }
 
   async createProduct(productCreateReqData: CreateProductDto, productFile: Express.Multer.File): Promise<ProductApiResponse> {
     try {
@@ -51,7 +52,8 @@ export class ProductService {
       return result;
     }
   };
-  async findAllProducts(pageNumber: string):Promise<ProductApiResponse> {
+
+  async findAllProducts(pageNumber: string): Promise<ProductApiResponse> {
     try {
       const productsPerPage = 2;
       const page = parseInt(pageNumber) || 1;
@@ -66,7 +68,7 @@ export class ProductService {
         product: {
           allProducts: products,
           totalProducts,
-          totalPages: Math.ceil(totalProducts/productsPerPage)
+          totalPages: Math.ceil(totalProducts / productsPerPage)
         }
       }
       return result;
@@ -79,6 +81,7 @@ export class ProductService {
       return result;
     }
   };
+
   async findSingleProduct(productId: string): Promise<ProductApiResponse> {
     try {
       const product = await this.prismaDB.product.findUnique({
@@ -86,23 +89,31 @@ export class ProductService {
           id: parseInt(productId)
         }
       });
-      const result: ProductApiResponse = {
-        message: `Product retrieved successfully`,
-        statusCode: 200,
-        product: {
-          id: product.id,
-          name: product.name,
-          brand: product.brand,
-          unit_price: product.unit_price,
-          sale_price: product.sale_price,
-          quantity: product.quantity,
-          measureType: product.measureType,
-          sku: product.sku,
-          description: product.description,
-          thumbnail: product.thumbnail
+      if (product) {
+        const result: ProductApiResponse = {
+          message: `Product retrieved successfully`,
+          statusCode: 200,
+          product: {
+            id: product.id,
+            name: product.name,
+            brand: product.brand,
+            unit_price: product.unit_price,
+            sale_price: product.sale_price,
+            quantity: product.quantity,
+            measureType: product.measureType,
+            sku: product.sku,
+            description: product.description,
+            thumbnail: product.thumbnail
+          }
         }
+        return result;
+      } else {
+        const result: ProductApiResponse = {
+          message: `Product not found`,
+          statusCode: 404
+        }
+        return result;
       }
-      return result;
     } catch (error) {
       console.log(error);
       const result: ProductApiResponse = {
@@ -112,11 +123,145 @@ export class ProductService {
       return result;
     }
   };
-  async updateProduct(productId: string): Promise<ProductApiResponse> {
+
+  async updateProduct(productId: string, productEditReqData: CreateProductDto, productFile: Express.Multer.File): Promise<ProductApiResponse> {
     try {
-      
+      const product = await this.prismaDB.product.findUnique({
+        where: {
+          id: parseInt(productId)
+        }
+      });
+
+      if (product) {
+        unsyncUploadedFile(`./${product.thumbnail}`);
+
+        const unitPrice_StringToNumber = parseInt(productEditReqData.unit_price);
+        const salePrice_StringToNumber = parseInt(productEditReqData.sale_price);
+        const quantity_StringToNumber = parseInt(productEditReqData.quantity);
+
+        const updatedProduct = await this.prismaDB.product.update({
+          where: {
+            id: product.id
+          },
+          data: {
+            name: productEditReqData.name,
+            description: productEditReqData.description.length !== 0 ? productEditReqData.description : null,
+            brand: productEditReqData.brand,
+            unit_price: unitPrice_StringToNumber,
+            sale_price: salePrice_StringToNumber,
+            quantity: quantity_StringToNumber,
+            measureType: productEditReqData.measureType,
+            sku: productEditReqData.sku,
+            thumbnail: `/upload/${productFile.filename}`
+          }
+        });
+
+        const result: ProductApiResponse = {
+          message: `Product updated successfully`,
+          statusCode: 200,
+          product: {
+            id: updatedProduct.id,
+            name: updatedProduct.name,
+            brand: updatedProduct.brand,
+            unit_price: updatedProduct.unit_price,
+            sale_price: updatedProduct.sale_price,
+            quantity: updatedProduct.quantity,
+            measureType: updatedProduct.measureType,
+            sku: updatedProduct.sku,
+            description: updatedProduct.description,
+            thumbnail: updatedProduct.thumbnail
+          }
+        }
+        return result;
+      } else {
+        const result: ProductApiResponse = {
+          message: `Product not found`,
+          statusCode: 404
+        }
+        return result;
+      }
     } catch (error) {
       console.log(error);
+      const result: ProductApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      return result;
+    }
+  };
+
+  async updateStock(productId: string, updatedStockQuanity: string): Promise<UpdateStockApiResponse> {
+    try {
+      const product = await this.prismaDB.product.findUnique({
+        where: {
+          id: parseInt(productId)
+        }
+      });
+      if (product) {
+        const quantity_StringToNumber = parseInt(updatedStockQuanity);
+        const updatedStock = await this.prismaDB.product.update({
+          where: {
+            id: product.id
+          },
+          data: {
+            quantity: quantity_StringToNumber + product.quantity
+          }
+        });
+        const result: UpdateStockApiResponse = {
+          message: `Stock updated successfully`,
+          statusCode: 200,
+          product: {
+            id: updatedStock.id,
+            name: updatedStock.name,
+            quantity: updatedStock.quantity,
+            sku: updatedStock.sku
+          }
+        }
+        return result;
+      } else {
+        const result: UpdateStockApiResponse = {
+          message: `Product not found`,
+          statusCode: 404
+        }
+        return result;
+      }
+    } catch (error) {
+      console.log(error);
+      const result: UpdateStockApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      return result;
+    }
+  };
+
+  async deleteProduct(productId: string) : Promise<ProductApiResponse> {
+    try {
+      const validProduct = await this.prismaDB.product.findUnique({
+        where: {
+          id: parseInt(productId)
+        }
+      });
+      if(validProduct) {
+        unsyncUploadedFile(`./${validProduct.thumbnail}`);
+        await this.prismaDB.product.delete({
+          where: {
+            id: validProduct.id
+          }
+        });
+        const result: ProductApiResponse = {
+          message: `Product deleted successfully`,
+          statusCode: 200
+        }
+        return result;
+      } else {
+        const result: ProductApiResponse = {
+          message: `Product not found`,
+          statusCode: 404
+        }
+        return result;
+      }
+    } catch (error) {
       const result: ProductApiResponse = {
         message: `Internal server error`,
         statusCode: 500

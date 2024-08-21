@@ -39,3 +39,15 @@ export class AllProductsDto {
   totalProducts: number;
   totalPages: number;
 }
+
+export class UpdateStockApiResponse {
+  message: string;
+  product?: {
+    id: number;
+    name: string;
+    quantity: number;
+    sku: string;
+  };
+  error?: object;
+  statusCode: number;
+}

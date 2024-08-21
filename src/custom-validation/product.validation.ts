@@ -66,6 +66,21 @@ export class ProductValidationService {
     return this.baseValidation(editReqBody, editReqFile, false);
   }
 
+  async updateStockValidation(quantity: string): Promise<DtoValidationResult> {
+    let error: { [field: string]: string } = {};
+
+    if (!quantity) {
+      error.quantity = `Quantity is required`;
+    } else if (parseInt(quantity) < 0) {
+      error.quantity = `Quantity cannot be negative`;
+    }
+
+    return {
+      error,
+      isValid: Object.keys(error).length === 0,
+    };
+  }
+
 }
 
 export default ProductValidationService;

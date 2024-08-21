@@ -14,7 +14,9 @@ export class ProductModule implements NestModule {
             .apply(IsAdminMiddleware)
             .forRoutes(
               { path: 'product/add', method: RequestMethod.POST },
-              { path: 'product/edit/:id', method: RequestMethod.PUT }
+              { path: 'product/edit/:id', method: RequestMethod.PUT },
+              { path: 'product/edit/stock/:id', method: RequestMethod.PATCH },
+              { path: 'product/delete/:id', method: RequestMethod.DELETE }
             )
   }
 }
