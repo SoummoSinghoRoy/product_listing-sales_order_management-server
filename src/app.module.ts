@@ -7,6 +7,7 @@ import { JwtAuthService } from './jwt/jwt.service';
 import { JwtModule } from '@nestjs/jwt';
 import { CustomerModule } from './modules/customer/customer.module';
 import { ProductModule } from './modules/product/product.module';
+import { CartModule } from './modules/cart/cart.module';
 
 @Module({
   imports: [DatabaseModule, UserModule, CustomerModule,
@@ -14,7 +15,8 @@ import { ProductModule } from './modules/product/product.module';
       global: true,
       secret: process.env.SECRET
     }),
-    ProductModule
+    ProductModule,
+    CartModule
   ],
   controllers: [AppController],
   providers: [AppService, JwtAuthService],

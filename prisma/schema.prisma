@@ -13,7 +13,7 @@ model User {
   email     String   @unique
   password  String
   role      String
-  customer  Customer?
+  customer  Customer? @relation()
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -24,8 +24,8 @@ model Customer {
   userId     Int      @unique
   contact_no String   @unique
   address    String
-  cart       Cart?
-  order      Order[]
+  order      Order[]  @relation()
+  cart_items CartItem[] @relation()
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
@@ -41,47 +41,37 @@ model Product {
   measureType     String
   sku             String
   thumbnail       String
-  cart_item       CartItem[]
+  cart_item       CartItem[] @relation()
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt  
 }
-
-// I can consider products should be apparel
 
 model CartItem {
   id        Int      @id @default(autoincrement())
   product   Product  @relation(fields: [productId], references: [id])
   productId Int
-  quantity  String
-  cart      Cart     @relation(fields: [cartId], references: [id])
-  cartId    Int
+  quantity  Int
+  amount    Int
+  order     Order?    @relation(fields: [orderId], references: [id])
+  orderId   Int?      
+  customer  Customer @relation(fields: [customerId], references: [id])
+  customerId Int
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt  
 }
 
-model Cart {
-  id          Int        @id @default(autoincrement())
-  cart_items  CartItem[]
-  customer    Customer   @relation(fields: [customerId], references: [id])
-  customerId  Int        @unique
-  total_amount Int
-  order       Order?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-}
-
-//sale order confirm hole dekhabe processing
+// sale order confirm hole dekhabe processing. And product quanity theke kombe. jehetu cart a thaka product sale hoye gelo
 model Order {
   id              Int        @id @default(autoincrement())
-  ordered_items   Cart       @relation(fields: [cartId], references: [id])
-  cartId          Int        @unique
+  ordered_items   CartItem[] @relation() 
+  itemId          Int        
   customer        Customer   @relation(fields: [customerId], references: [id])
   customerId      Int
   order_amount    Int
   order_date      DateTime   @default(now())
   order_status    String     @default("accepted") 
   shipping_address String
-  sale_order      SaleOrder?
+  sale_order      SaleOrder? @relation()
   createdAt       DateTime   @default(now())
   updatedAt       DateTime   @updatedAt
 }
@@ -97,5 +87,5 @@ model SaleOrder {
   sale_date     DateTime @default(now())
   order_status  String   @default("ongoing")
   createdAt     DateTime @default(now())
-  updatedAt       DateTime   @updatedAt
+  updatedAt     DateTime   @updatedAt
 }
