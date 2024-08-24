@@ -27,7 +27,7 @@ export class CartController {
           const result = await this.cartService.addToCart(reqBody);
           const apiResponse: AddToCartApiResponse = {
             message: result.message,
-            cartItem: result.statusCode === 200 && result.cartItem,
+            cart: result.statusCode === 200 && result.cart,
             statusCode: result.statusCode,
           }
           res.json(apiResponse);
@@ -35,7 +35,7 @@ export class CartController {
           const result = await this.cartService.addToCart(reqBody, user.customerId);
           const apiResponse: AddToCartApiResponse = {
             message: result.message,
-            cartItem: result.statusCode === 200 && result.cartItem,
+            cart: result.statusCode === 200 && result.cart,
             statusCode: result.statusCode,
           }
           res.json(apiResponse);

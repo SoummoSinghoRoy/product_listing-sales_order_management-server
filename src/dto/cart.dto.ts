@@ -12,21 +12,20 @@ export class DtoValidationResult {
 
 export class AddToCartApiResponse {
   message: string;
-  cartItem?: CartItemDto
+  cart?: CartDto | CartDto[]
   error?: object;
   statusCode: number;
 }
 
-export class CartItemDto {
+export class CartDto {
   id: number;
-  product: CartProductDto;
-  quantity: number;
-  amount: number;
+  product: any;
+  added_date: any;
 }
 
-export class CartProductDto {
-  id: number;
-  name: string;
-  sale_price: number;
-  measureType: string;
-}
+// export class CartProductDto {
+//   id: number;
+//   name: string;
+//   sale_price: number;
+//   measureType: string;
+// }

@@ -25,7 +25,7 @@ model Customer {
   contact_no String   @unique
   address    String
   order      Order[]  @relation()
-  cart_items CartItem[] @relation()
+  cart       Cart[]   @relation()
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
@@ -52,21 +52,30 @@ model CartItem {
   productId Int
   quantity  Int
   amount    Int
-  order     Order?    @relation(fields: [orderId], references: [id])
-  orderId   Int?      
-  customer  Customer @relation(fields: [customerId], references: [id])
-  customerId Int
+  cart      Cart?   @relation(fields: [cartId], references: [id])
+  cartId    Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt  
+}
+
+model Cart {
+  id          Int        @id @default(autoincrement())
+  cart_items  CartItem[] @relation()
+  customer    Customer   @relation(fields: [customerId], references: [id])
+  customerId  Int        @unique()
+  added_date  DateTime   @default(now())
+  order       Order?      
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
 }
 
 // sale order confirm hole dekhabe processing. And product quanity theke kombe. jehetu cart a thaka product sale hoye gelo
 model Order {
   id              Int        @id @default(autoincrement())
-  ordered_items   CartItem[] @relation() 
-  itemId          Int        
   customer        Customer   @relation(fields: [customerId], references: [id])
   customerId      Int
+  cart            Cart       @relation(fields: [cartId], references: [id])
+  cartId          Int        @unique()
   order_amount    Int
   order_date      DateTime   @default(now())
   order_status    String     @default("accepted") 
@@ -87,5 +96,5 @@ model SaleOrder {
   sale_date     DateTime @default(now())
   order_status  String   @default("ongoing")
   createdAt     DateTime @default(now())
-  updatedAt     DateTime   @updatedAt
+  updatedAt     DateTime @updatedAt
 }
