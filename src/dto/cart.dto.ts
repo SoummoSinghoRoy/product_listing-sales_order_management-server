@@ -2,7 +2,6 @@ export class CreateCartDto {
   customerId?: string;
   productId: string;
   quantity: string;
-  amount: string;
 }
 
 export class DtoValidationResult {
@@ -14,13 +13,14 @@ export class AddToCartApiResponse {
   message: string;
   cart?: CartDto | CartDto[]
   error?: object;
+  removedItemId?: number;
   statusCode: number;
 }
 
 export class CartDto {
   id: number;
-  product: any;
-  added_date: any;
+  cartItems: any;
+  added_date: Date;
 }
 
 // export class CartProductDto {

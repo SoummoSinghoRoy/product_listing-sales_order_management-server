@@ -1,4 +1,4 @@
-import { Body, Controller, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { CartService } from './cart.service';
@@ -7,7 +7,7 @@ import { CartValidationService } from 'src/custom-validation/cart.validation';
 
 @Controller('cart')
 export class CartController {
-  constructor(private cartService: CartService, private cartValidation: CartValidationService) { }
+  constructor(private cartService: CartService, private cartValidation: CartValidationService) {}
   @Post('/add')
   @UseGuards(AuthGuard)
   async addProductToCart(@Body() reqBody: CreateCartDto, @Req() req: Request, @Res() res: Response): Promise<void> {
@@ -41,6 +41,27 @@ export class CartController {
           res.json(apiResponse);
         }
       }
+    } catch (error) {
+      console.log(error);
+      const apiResponse: AddToCartApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      res.json(apiResponse);
+    }
+  };
+
+  @Delete('/remove/:cartItemId')
+  @UseGuards(AuthGuard)
+  async removeProductFromcart(@Param() params: any, @Res() res: Response): Promise<void> {
+    try {
+      const result = await this.cartService.removeFromCart(params.cartItemId);
+      const apiResponse: AddToCartApiResponse = {
+        message: result.message,
+        removedItemId: result.statusCode === 200 && result.removedItemId,
+        statusCode: result.statusCode,
+      }
+      res.json(apiResponse);
     } catch (error) {
       console.log(error);
       const apiResponse: AddToCartApiResponse = {

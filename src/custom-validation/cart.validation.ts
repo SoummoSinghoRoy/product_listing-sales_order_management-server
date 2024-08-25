@@ -29,10 +29,6 @@ export class CartValidationService {
         } else if(product.quantity < parseInt(reqBody.quantity)) {
           error.quantity = `Requested quantity is not available`
         }
-  
-        if(!reqBody.amount) {
-          error.amount = `Amount is required`
-        }
       }
     }
   

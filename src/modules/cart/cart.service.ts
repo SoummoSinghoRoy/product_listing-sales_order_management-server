@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import * as moment from 'moment';
 import { DatabaseService } from 'src/database/database.service';
 import { AddToCartApiResponse, CreateCartDto } from 'src/dto/cart.dto';
 
@@ -22,35 +23,6 @@ export class CartService {
         });
 
         if(validProduct) {
-          /*const addedProductToCart = await this.prismaDB.cart.upsert({
-            where: {
-              customerId: validCustomer.id
-            },
-            update: {
-              added_date: new Date(),
-              cart_items: {
-                create: {
-                  productId: validProduct.id,
-                  quantity: parseInt(createReqData.quantity),
-                  amount: parseInt(createReqData.quantity) * validProduct.sale_price
-                }
-              }
-            },
-            create: {
-              customerId: validCustomer.id,
-              added_date: new Date(),
-              cart_items: {
-                create: {
-                  productId: validProduct.id,
-                  quantity: parseInt(createReqData.quantity),
-                  amount: parseInt(createReqData.quantity) * validProduct.sale_price
-                }
-              }
-            },
-            include: {
-              cart_items: true
-            }
-          });*/
           const customerExistingCart = await this.prismaDB.cart.findUnique({
             where: {
               customerId: validCustomer.id
@@ -58,10 +30,11 @@ export class CartService {
           });
 
           if(!customerExistingCart) {
+            const localTime = moment().format();
             const addedProductToCart = await this.prismaDB.cart.create({
               data: {
                 customerId: validCustomer.id,
-                added_date: new Date(),
+                added_date: localTime,
                 cart_items: {
                   create: {
                     productId: validProduct.id,
@@ -71,7 +44,11 @@ export class CartService {
                 }
               },
               include: {
-                cart_items: true
+                cart_items: {
+                  include: {
+                    product: true
+                  }
+                }
               }
             });
 
@@ -89,7 +66,7 @@ export class CartService {
               message: `Item added to cart`,
               cart: {
                 id: addedProductToCart.id,
-                product: addedProductToCart.cart_items,
+                cartItems: addedProductToCart.cart_items,
                 added_date: addedProductToCart.added_date
               },
               statusCode: 200
@@ -110,7 +87,11 @@ export class CartService {
                 }
               },
               include: {
-                cart_items: true
+                cart_items: {
+                  include: {
+                    product: true
+                  }
+                }
               }
             });
 
@@ -129,7 +110,7 @@ export class CartService {
               message: `Item added to cart`,
               cart: {
                 id: updatedCart.id,
-                product: updatedCart.cart_items,
+                cartItems: updatedCart.cart_items,
                 added_date: updatedCart.added_date
               },
               statusCode: 200
@@ -160,85 +141,52 @@ export class CartService {
     }
   };
 
-  // remove item from cart
-  // async removeFromCart(productId: string): Promise<AddToCartApiResponse> {}
-}
-
-/*async addToCart2(createReqData: CreateCartDto, customerId?: number): Promise<AddToCartApiResponse> {
-  try {
-    const validCustomer = await this.prismaDB.customer.findUnique({
-      where: {
-        id: customerId || parseInt(createReqData.customerId)
-      }
-    });
-
-    if(validCustomer) {
-      const validProduct = await this.prismaDB.product.findUnique({
+  async removeFromCart(cartItemId: string) {
+    try {
+      const validCartItem = await this.prismaDB.cartItem.findUnique({
         where: {
-          id: parseInt(createReqData.productId)
+          id: parseInt(cartItemId) 
         }
       });
 
-      if(validProduct) {
-        const addedProductToCart = await this.prismaDB.cartItem.create({
-          data: {
-            product: {
-              connect: { id: validProduct.id }
-            },
-            customer: {
-              connect: { id: validCustomer.id }
-            },
-            quantity: parseInt(createReqData.quantity),
-            amount: parseInt(createReqData.quantity) * validProduct.sale_price,
+      if(validCartItem) {
+        const deletedItem = await this.prismaDB.cartItem.delete({
+          where: {
+            id: parseInt(cartItemId)
+          }
+        });
+
+        const customerCart = await this.prismaDB.cart.findUnique({
+          where: {
+            id: validCartItem.cartId
           },
           include: {
-            product: true
+            cart_items: true
           }
         });
-        await this.prismaDB.product.update({
-          where: {
-            id: addedProductToCart.productId
-          },
-          data: {
-            quantity: validProduct.quantity - addedProductToCart.quantity
-          }
-        });
+
+        if(customerCart.cart_items.length === 0) {
+          await this.prismaDB.cart.delete({
+            where: {
+              id: customerCart.id
+            }
+          });
+        }
+
         const result: AddToCartApiResponse = {
-          message: `Item added to cart`,
-          cartItem: {
-            id: addedProductToCart.id,
-            product: {
-              id: addedProductToCart.product.id,
-              name: addedProductToCart.product.name,
-              sale_price: addedProductToCart.product.sale_price,
-              measureType: addedProductToCart.product.measureType
-            },
-            quantity: addedProductToCart.quantity,
-            amount: addedProductToCart.amount
-          },
+          message: `Item removed from cart`,
+          removedItemId: deletedItem.id,
           statusCode: 200
         };
         return result;
-      } else {
-        const result: AddToCartApiResponse = {
-          message: `Product not valid`,
-          statusCode: 404
-        }
-        return result;
       }
-    } else {
+    } catch (error) {
+      console.log(error);
       const result: AddToCartApiResponse = {
-        message: `Customer not valid`,
-        statusCode: 404
+        message: `Internal server error`,
+        statusCode: 500
       }
       return result;
     }
-  } catch (error) {
-    console.log(error);
-    const result: AddToCartApiResponse = {
-      message: `Internal server error`,
-      statusCode: 500
-    }
-    return result;
-  }
-};*/
+  };
+}
