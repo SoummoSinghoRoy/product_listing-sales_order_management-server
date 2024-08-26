@@ -14,8 +14,6 @@ model User {
   password  String
   role      String
   customer  Customer? @relation()
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
 }
 
 model Customer {
@@ -26,8 +24,6 @@ model Customer {
   address    String
   order      Order[]  @relation()
   cart       Cart[]   @relation()
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
 }
 
 model Product {
@@ -42,8 +38,6 @@ model Product {
   sku             String
   thumbnail       String
   cart_item       CartItem[] @relation()
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt  
 }
 
 model CartItem {
@@ -54,8 +48,6 @@ model CartItem {
   amount    Int
   cart      Cart?   @relation(fields: [cartId], references: [id])
   cartId    Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt  
 }
 
 model Cart {
@@ -63,13 +55,11 @@ model Cart {
   cart_items  CartItem[] @relation()
   customer    Customer   @relation(fields: [customerId], references: [id])
   customerId  Int        @unique()
-  added_date  DateTime   @default(now())
+  added_date  String
   order       Order?      
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
 }
 
-// sale order confirm hole dekhabe processing. And product quanity theke kombe. jehetu cart a thaka product sale hoye gelo
+// sale order confirm hole dekhabe processing.
 model Order {
   id              Int        @id @default(autoincrement())
   customer        Customer   @relation(fields: [customerId], references: [id])
@@ -77,13 +67,14 @@ model Order {
   cart            Cart       @relation(fields: [cartId], references: [id])
   cartId          Int        @unique()
   order_amount    Int
-  order_date      DateTime   @default(now())
+  order_date      String
   order_status    String     @default("accepted") 
   shipping_address String
+  payment_method   String    @default("cash")
   sale_order      SaleOrder? @relation()
-  createdAt       DateTime   @default(now())
-  updatedAt       DateTime   @updatedAt
 }
+
+// ekta order handle korar jonyo cartId lagbe jeta item add korar somoy paoya jabe, customer id lagbe jeti cart er customer id theke paoya jabe, order amount cart item iterate kore amount er jogfol hobe order amount.
 
 // delivery hoye gele delivered dekhabe
 model SaleOrder {
@@ -95,6 +86,4 @@ model SaleOrder {
   due           Int
   sale_date     DateTime @default(now())
   order_status  String   @default("ongoing")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
 }

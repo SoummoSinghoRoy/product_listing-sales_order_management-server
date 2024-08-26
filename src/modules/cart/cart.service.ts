@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import * as moment from 'moment';
+import * as moment from 'moment-timezone';
 import { DatabaseService } from 'src/database/database.service';
 import { AddToCartApiResponse, CreateCartDto } from 'src/dto/cart.dto';
 
@@ -30,11 +30,11 @@ export class CartService {
           });
 
           if(!customerExistingCart) {
-            const localTime = moment().format();
+            const date = moment().tz('Asia/Dhaka').format('YYYY-MM-DD');
             const addedProductToCart = await this.prismaDB.cart.create({
               data: {
                 customerId: validCustomer.id,
-                added_date: localTime,
+                added_date: date,
                 cart_items: {
                   create: {
                     productId: validProduct.id,
@@ -155,6 +155,21 @@ export class CartService {
             id: parseInt(cartItemId)
           }
         });
+
+        const product = await this.prismaDB.product.findUnique({
+          where: {
+            id: validCartItem.productId
+          }
+        });
+
+        await this.prismaDB.product.update({
+          where: {
+            id: deletedItem.productId
+          },
+          data: {
+            quantity: product.quantity + deletedItem.quantity
+          }
+        })
 
         const customerCart = await this.prismaDB.cart.findUnique({
           where: {

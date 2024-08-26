@@ -53,7 +53,7 @@ export class CartController {
 
   @Delete('/remove/:cartItemId')
   @UseGuards(AuthGuard)
-  async removeProductFromcart(@Param() params: any, @Res() res: Response): Promise<void> {
+  async removeProductFromcart(@Param() params: any, @Req() req: Request, @Res() res: Response): Promise<void> {
     try {
       const result = await this.cartService.removeFromCart(params.cartItemId);
       const apiResponse: AddToCartApiResponse = {

@@ -20,7 +20,7 @@ export class AddToCartApiResponse {
 export class CartDto {
   id: number;
   cartItems: any;
-  added_date: Date;
+  added_date: string;
 }
 
 // export class CartProductDto {
