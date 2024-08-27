@@ -1,7 +1,7 @@
 export class CreateCartDto {
   customerId?: string;
-  productId: string;
-  quantity: string;
+  productId?: string;
+  quantity?: string;
 }
 
 export class DtoValidationResult {
@@ -19,6 +19,7 @@ export class AddToCartApiResponse {
 
 export class CartDto {
   id: number;
+  customerId: number;
   cartItems: any;
   added_date: string;
 }

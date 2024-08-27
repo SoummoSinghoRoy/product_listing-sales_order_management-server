@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { CartService } from './cart.service';
@@ -50,6 +50,27 @@ export class CartController {
       res.json(apiResponse);
     }
   };
+
+  @Get('/details/:cartId')
+  @UseGuards(AuthGuard)
+  async getCartDetails(@Param() param: any, @Res() res: Response): Promise<void> {
+    try {
+      const result = await this.cartService.retrieveCartDetails(param.cartId);
+      const apiResponse: AddToCartApiResponse = {
+        message: result.message,
+        cart: result.statusCode === 200 && result.cart,
+        statusCode: result.statusCode,
+      }
+      res.json(apiResponse);
+    } catch (error) {
+      console.log(error);
+      const apiResponse: AddToCartApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      res.json(apiResponse);
+    }
+  }
 
   @Delete('/remove/:cartItemId')
   @UseGuards(AuthGuard)

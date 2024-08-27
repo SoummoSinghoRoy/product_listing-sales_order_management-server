@@ -8,6 +8,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { CustomerModule } from './modules/customer/customer.module';
 import { ProductModule } from './modules/product/product.module';
 import { CartModule } from './modules/cart/cart.module';
+import { OrderModule } from './modules/order/order.module';
 
 @Module({
   imports: [DatabaseModule, UserModule, CustomerModule,
@@ -16,7 +17,8 @@ import { CartModule } from './modules/cart/cart.module';
       secret: process.env.SECRET
     }),
     ProductModule,
-    CartModule
+    CartModule,
+    OrderModule
   ],
   controllers: [AppController],
   providers: [AppService, JwtAuthService],

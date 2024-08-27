@@ -59,7 +59,7 @@ model Cart {
   order       Order?      
 }
 
-// sale order confirm hole dekhabe processing.
+// order place/confirm korle order status "accepted" dekhabe. sale order admin confirm hole dekhabe processing.
 model Order {
   id              Int        @id @default(autoincrement())
   customer        Customer   @relation(fields: [customerId], references: [id])
@@ -68,12 +68,13 @@ model Order {
   cartId          Int        @unique()
   order_amount    Int
   order_date      String
-  order_status    String     @default("accepted") 
+  order_status    String 
   shipping_address String
   payment_method   String    @default("cash")
   sale_order      SaleOrder? @relation()
 }
 
+// erpor order module niye kaj hobe -->
 // ekta order handle korar jonyo cartId lagbe jeta item add korar somoy paoya jabe, customer id lagbe jeti cart er customer id theke paoya jabe, order amount cart item iterate kore amount er jogfol hobe order amount.
 
 // delivery hoye gele delivered dekhabe

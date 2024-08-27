@@ -66,6 +66,7 @@ export class CartService {
               message: `Item added to cart`,
               cart: {
                 id: addedProductToCart.id,
+                customerId: addedProductToCart.customerId,
                 cartItems: addedProductToCart.cart_items,
                 added_date: addedProductToCart.added_date
               },
@@ -110,6 +111,7 @@ export class CartService {
               message: `Item added to cart`,
               cart: {
                 id: updatedCart.id,
+                customerId: updatedCart.customerId,
                 cartItems: updatedCart.cart_items,
                 added_date: updatedCart.added_date
               },
@@ -127,6 +129,48 @@ export class CartService {
       } else {
         const result: AddToCartApiResponse = {
           message: `Customer not valid`,
+          statusCode: 404
+        }
+        return result;
+      }
+    } catch (error) {
+      console.log(error);
+      const result: AddToCartApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      return result;
+    }
+  };
+
+  async retrieveCartDetails(cartId: string): Promise<AddToCartApiResponse> {
+    try {
+      const cartDetails = await this.prismaDB.cart.findUnique({
+        where: {
+          id: parseInt(cartId),
+        },
+        include: {
+          cart_items: true,
+          customer: true,
+          order: true
+        }
+      });
+      
+      if(cartDetails && (cartDetails.order?.order_status !== "accepted" && cartDetails.order?.order_status !==  "processing")) {
+        const result: AddToCartApiResponse = {
+          message: `Cart items found`,
+          cart: {
+            id: cartDetails.id,
+            customerId: cartDetails.customerId,
+            cartItems: cartDetails.cart_items,
+            added_date: cartDetails.added_date
+          },
+          statusCode: 200
+        }
+        return result;
+      } else {
+        const result: AddToCartApiResponse = {
+          message: `Cart is empty`,
           statusCode: 404
         }
         return result;
