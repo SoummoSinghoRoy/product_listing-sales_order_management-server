@@ -46,7 +46,7 @@ model CartItem {
   productId Int
   quantity  Int
   amount    Int
-  cart      Cart?   @relation(fields: [cartId], references: [id])
+  cart      Cart?   @relation(fields: [cartId], references: [id], onDelete: Cascade)
   cartId    Int?
 }
 
@@ -56,7 +56,7 @@ model Cart {
   customer    Customer   @relation(fields: [customerId], references: [id])
   customerId  Int        @unique()
   added_date  String
-  order       Order?      
+  order       Order?     @relation() 
 }
 
 // order place/confirm korle order status "accepted" dekhabe. sale order admin confirm hole dekhabe processing.
@@ -64,7 +64,7 @@ model Order {
   id              Int        @id @default(autoincrement())
   customer        Customer   @relation(fields: [customerId], references: [id])
   customerId      Int
-  cart            Cart       @relation(fields: [cartId], references: [id])
+  cart            Cart       @relation(fields: [cartId], references: [id], onDelete: Cascade)
   cartId          Int        @unique()
   order_amount    Int
   order_date      String
@@ -73,9 +73,6 @@ model Order {
   payment_method   String    @default("cash")
   sale_order      SaleOrder? @relation()
 }
-
-// erpor order module niye kaj hobe -->
-// ekta order handle korar jonyo cartId lagbe jeta item add korar somoy paoya jabe, customer id lagbe jeti cart er customer id theke paoya jabe, order amount cart item iterate kore amount er jogfol hobe order amount.
 
 // delivery hoye gele delivered dekhabe
 model SaleOrder {

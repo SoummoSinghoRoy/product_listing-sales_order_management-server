@@ -71,7 +71,92 @@ export class OrderService {
       }
       return result;
     }
+  };
+
+  async cancelOrder(orderId: string): Promise<OrderApiResponse> {
+    try {
+      const validOrder = await this.prismaDB.order.findUnique({
+        where: {
+          id: parseInt(orderId)
+        },
+        include: {
+          cart: {
+            include: {
+              cart_items: true
+            }
+          }
+        }
+      });
+      if(validOrder && validOrder.order_status === "accepted") {
+        const deletedOrder = await this.prismaDB.order.delete({
+          where: {
+            id: validOrder.id
+          },
+          include: {
+            cart: {
+              include: {
+                cart_items: true
+              }
+            }
+          }
+        });
+                
+        deletedOrder.cart.cart_items.forEach(async (item) => {
+          const validProduct = await this.prismaDB.product.findUnique({
+            where: {
+              id: item.productId
+            }
+          });
+          if(validProduct) {
+            await this.prismaDB.product.update({
+              where: {
+                id: validProduct.id
+              },
+              data: {
+                quantity: validProduct.quantity + item.quantity
+              }
+            })
+          }
+        });
+        if(deletedOrder) {
+          const deletedcart = await this.prismaDB.cart.delete({
+            where: {
+              id: deletedOrder.cartId
+            }
+          });
+          if(deletedcart) {
+            const result: OrderApiResponse = {
+              message: `Accepted order cancelation request`,
+              statusCode: 200
+            }
+            return result;
+          }
+        }
+      } else if(validOrder && validOrder.order_status === "processing") {
+        const result: OrderApiResponse = {
+          message: `No longer accepted cancel request`,
+          statusCode: 405
+        }
+        return result;
+      } else {
+        const result: OrderApiResponse = {
+          message: `Invalid order`,
+          statusCode: 404
+        }
+        return result;
+      }
+    } catch (error) {
+      console.log(error);
+      const result: OrderApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      return result;
+    }
   }
+  // retrieve all orders(It'll be only for admin)
 }
 
 // sale-order, order accept houyar por eta only admin korbe. order accepted hobe tarpor admin order details dekhbe. sekhan theke order confirm korle sale order karjokor hobe. ejonyo request theke reject othoba confirm message nibo. reject message hole saleorder model er order status reject hobe. confirm message hole order status ongoing dekhabe. pashapashi cart er order_status processing hobe. order delivery kore felle sale order status update kore delivered dekhabe, ebong cart er order status delivered dekhabo. 
+
+// ekjon customer chaile tar account delete korte pare. ekhetre tar sokol activities disable kore dite hobe. ekhetre user account status field kore signup korle active dekhate pari dite. delete request korle deleted dekhabo. er pashpashi login er somoy check korbo login korte chaoya user er account status active hole login korte dibo noyto reject korbo.  

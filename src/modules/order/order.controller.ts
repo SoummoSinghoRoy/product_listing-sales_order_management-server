@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Param, Post, Res, UseGuards } from '@nestjs/common';
 import { Response } from 'express';
 import { OrderService } from './order.service';
 import { AuthGuard } from 'src/guards/auth.guard';
@@ -30,6 +30,26 @@ export class OrderController {
         }
         res.json(apiResponse);
       }
+    } catch (error) {
+      console.log(error);
+      const apiResponse: OrderApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      res.json(apiResponse);
+    }
+  };
+
+  @Delete('/cancel/:orderId')
+  @UseGuards(AuthGuard)
+  async cancelOrder(@Param() params: any, @Res() res: Response): Promise<void> {
+    try {
+      const result = await this.orderService.cancelOrder(params.orderId);
+      const apiResponse: OrderApiResponse = {
+        message: result.message,
+        statusCode: result.statusCode,
+      }
+      res.json(apiResponse);
     } catch (error) {
       console.log(error);
       const apiResponse: OrderApiResponse = {
