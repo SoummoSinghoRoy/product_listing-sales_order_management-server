@@ -70,7 +70,6 @@ export class UserService {
               token: `Bearer ${token}`,
               authenticated: true,
               statusCode: 200
-              // here will be include order & cart of customer
             }
             return result;
           } else if(validUser.role === 'customer' && validUser.customer.account_status !== "active") {

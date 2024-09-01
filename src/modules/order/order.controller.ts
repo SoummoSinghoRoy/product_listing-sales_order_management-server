@@ -1,5 +1,5 @@
-import { Body, Controller, Delete, Param, Post, Res, UseGuards } from '@nestjs/common';
-import { Response } from 'express';
+import { Body, Controller, Delete, Get, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Response, Request } from 'express';
 import { OrderService } from './order.service';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { CreateOrderDto, OrderApiResponse } from 'src/dto/order.dto';
@@ -39,6 +39,47 @@ export class OrderController {
       res.json(apiResponse);
     }
   };
+
+  @Get('/all')
+  async allOrdersListOfAllCustomers(@Res() res: Response): Promise<void> {
+    try {
+      const result = await this.orderService.allOrderOfAllCustomers();
+      const apiResponse: OrderApiResponse = {
+        message: result.message,
+        order_details: result.statusCode === 200 && result.order_details,
+        statusCode: result.statusCode,
+      }
+      res.json(apiResponse);
+    } catch (error) {
+      console.log(error);
+      const apiResponse: OrderApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      res.json(apiResponse);
+    }
+  };
+
+  @Get('/all-orders/:customerId')
+  @UseGuards(AuthGuard)
+  async retrieveAllOrderOfSingleCustomer(@Param() params: any, @Req() req: Request, @Res() res: Response): Promise<void> {
+    try {
+      const result = await this.orderService.allOrderOfSingleCustomer(params.customerId);
+      const apiResponse: OrderApiResponse = {
+        message: result.message,
+        order_details: result.statusCode === 200 && result.order_details,
+        statusCode: result.statusCode
+      }
+      res.json(apiResponse);
+    } catch (error) {
+      console.log(error);
+      const apiResponse: OrderApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      res.json(apiResponse);
+    }
+  }
 
   @Delete('/cancel/:orderId')
   @UseGuards(AuthGuard)

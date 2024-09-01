@@ -49,6 +49,7 @@ export class CustomerService {
       return result;
     }
   };
+
   async editCustomer(updateReqData: UpdateCustomerDto, customerId: string, userId: string): Promise<CustomerApiResponse> {
     try {
       const hashedPassword = await bcrypt.hash(updateReqData.password, 8);
@@ -86,6 +87,84 @@ export class CustomerService {
         }
       }
       return result; 
+    } catch (error) {
+      console.log(error);
+      const result: CustomerApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      return result;
+    }
+  };
+
+  async allCustomers(): Promise<CustomerApiResponse> {
+    try {
+      const customers = await this.primsaDB.customer.findMany({
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              role: true
+            }
+          },
+          cart: true,
+          order: true
+        }
+      });
+      if(customers.length !== 0) {
+        const result: CustomerApiResponse = {
+          message: `Customers successfully retrieve`,
+          customer: customers,
+          statusCode: 200
+        }
+        return result;
+      } else {
+        const result: CustomerApiResponse = {
+          message: `Customers empty`,
+          statusCode: 404
+        }
+        return result;
+      }
+    } catch (error) {
+      console.log(error);
+      const result: CustomerApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      return result;
+    }
+  };
+
+  async deleteCustomer(customerId: string): Promise<CustomerApiResponse> {
+    try {
+      const validCustomer = await this.primsaDB.customer.findUnique({
+        where: {
+          id: parseInt(customerId)
+        }
+      });
+      if(validCustomer) {
+        await this.primsaDB.customer.update({
+          where: {
+            id: validCustomer.id
+          },
+          data: {
+            account_status: "inactive"
+          }
+        })
+        const result: CustomerApiResponse = {
+          message: `Account successfully disabled`,
+          statusCode: 200
+        }
+        return result;
+      } else {
+        const result: CustomerApiResponse = {
+          message: `Customer not valid`,
+          statusCode: 404
+        }
+        return result;
+      }
     } catch (error) {
       console.log(error);
       const result: CustomerApiResponse = {

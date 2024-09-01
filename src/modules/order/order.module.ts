@@ -1,11 +1,20 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { OrderController } from './order.controller';
 import { JwtAuthService } from 'src/jwt/jwt.service';
 import { OrderValidationService } from 'src/custom-validation/order.validation';
+import { IsAdminMiddleware } from 'src/middlewares/isAdmin.middleware';
 
 @Module({
   providers: [OrderService, JwtAuthService, OrderValidationService],
   controllers: [OrderController]
 })
-export class OrderModule {}
+export class OrderModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+            .apply(IsAdminMiddleware)
+            .forRoutes(
+              { path: 'order/all', method: RequestMethod.GET }
+            )
+  }
+}

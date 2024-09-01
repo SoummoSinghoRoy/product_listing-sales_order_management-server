@@ -153,10 +153,104 @@ export class OrderService {
       }
       return result;
     }
+  };
+
+  async allOrderOfSingleCustomer(customerId: string): Promise<OrderApiResponse> {
+    try {
+      const validCustomer = await this.prismaDB.customer.findUnique({
+        where: {
+          id: parseInt(customerId)
+        }
+      });
+      if(validCustomer) {
+        const orders = await this.prismaDB.order.findMany({
+          where: {
+            customerId: validCustomer.id
+          },
+          include: {
+            customer: true,
+            cart: {
+              include: {
+                cart_items: {
+                  include: {
+                    product: true
+                  }
+                }
+              }
+            }
+          }
+        }); 
+        if(orders.length !== 0) {
+          const result: OrderApiResponse = {
+            message: `Order retrieve successfully`,
+            order_details: orders,
+            statusCode: 200
+          }
+          return result;
+        } else {
+          const result: OrderApiResponse = {
+            message: `Order is empty`,
+            statusCode: 404
+          }
+          return result;
+        }
+      } else {
+        const result: OrderApiResponse = {
+          message: `Customer not valid`,
+          statusCode: 404
+        }
+        return result;
+      }
+    } catch (error) {
+      console.log(error);
+      const result: OrderApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      return result;
+    }
+  };
+  
+  async allOrderOfAllCustomers(): Promise<OrderApiResponse> {
+    try {
+      const allCustomersOrders = await this.prismaDB.order.findMany({
+        include: {
+          customer: true,
+          cart: {
+            include: {
+              cart_items: {
+                include: {
+                  product: true
+                }
+              }
+            }
+          }
+        }
+      });
+
+      if(allCustomersOrders.length !== 0) {
+        const result: OrderApiResponse = {
+          message: `All orders retrieve successfully`,
+          order_details: allCustomersOrders,
+          statusCode: 200
+        }
+        return result;
+      } else {
+        const result: OrderApiResponse = {
+          message: `Orders empty`,
+          statusCode: 404
+        }
+        return result;
+      }
+    } catch (error) {
+      console.log(error);
+      const result: OrderApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      return result;
+    }
   }
-  // retrieve all orders(It'll be only for admin)
 }
 
-// sale-order, order accept houyar por eta only admin korbe. order accepted hobe tarpor admin order details dekhbe. sekhan theke order confirm korle sale order karjokor hobe. ejonyo request theke reject othoba confirm message nibo. reject message hole saleorder model er order status reject hobe. confirm message hole order status ongoing dekhabe. pashapashi cart er order_status processing hobe. order delivery kore felle sale order status update kore delivered dekhabe, ebong cart er order status delivered dekhabo. 
-
-// ekjon customer chaile tar account delete korte pare. ekhetre tar sokol activities disable kore dite hobe. ekhetre customer model e account status field kore signup korle active dekhabo. delete request korle deleted dekhabo. er pashpashi login er somoy check korbo login korte chaoya user er account status active hole login korte dibo noyto reject korbo.  
+// sale-order, order accept houyar por eta only admin korbe. order accepted hobe tarpor admin order details dekhbe. sekhan theke order confirm korle sale order karjokor hobe. ejonyo request theke reject othoba confirm message nibo. reject message hole order model er order status reject hobe ebong sale order record thakbe na. confirm message hole order status ongoing dekhabe. pashapashi cart er order_status processing hobe. order delivery kore felle sale order status update kore delivered dekhabe, ebong cart er order status delivered dekhabo. 

@@ -3,6 +3,7 @@ import { CustomerService } from './customer.service';
 import { CustomerController } from './customer.controller';
 import { JwtAuthService } from 'src/jwt/jwt.service';
 import { IsCustomerMiddleware } from 'src/middlewares/isCustomer.middleware';
+import { IsAdminMiddleware } from 'src/middlewares/isAdmin.middleware';
 
 @Module({
   providers: [CustomerService, JwtAuthService],
@@ -13,7 +14,12 @@ export class CustomerModule implements NestModule {
     consumer
             .apply(IsCustomerMiddleware)
             .forRoutes(
-              { path: 'customer/edit/:id', method: RequestMethod.PATCH }
-            )
+              { path: 'customer/edit/:id', method: RequestMethod.PATCH },
+            );
+    consumer
+            .apply(IsAdminMiddleware)
+            .forRoutes(
+              { path: 'customer/all', method: RequestMethod.GET } 
+            );
   }
 }

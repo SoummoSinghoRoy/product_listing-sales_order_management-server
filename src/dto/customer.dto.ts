@@ -15,13 +15,13 @@ export class UpdateCustomerDto extends PartialType(CreateCustomerDto) {}
 
 export class CustomerApiResponse extends UserApiResponse {
   message: string;
-  customer?: CustomerDto;
+  customer?: CustomerDto | CustomerDto[];
   statusCode: number;
 }
 
 export class CustomerDto extends UserDto {
   contact_no?: string;
   address?: string;
-  cart?: any; // that'll be updated by cartdto
-  order?: any; // that'll be updated by orderdto
+  cart?: any;
+  order?: any;
 }
