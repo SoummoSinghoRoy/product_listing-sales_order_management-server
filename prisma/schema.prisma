@@ -22,6 +22,7 @@ model Customer {
   userId     Int      @unique
   contact_no String   @unique
   address    String
+  account_status  String    @default("active")
   order      Order[]  @relation()
   cart       Cart[]   @relation()
 }

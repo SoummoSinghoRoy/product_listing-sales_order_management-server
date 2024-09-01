@@ -55,7 +55,8 @@ export class UserService {
       if(validUser) {
         const match = await bcrypt.compare(loginreqData.password, validUser.password);
         if(match) {
-          if(validUser.role === 'customer') {
+          if(validUser.role === 'customer' && validUser.customer.account_status === "active") {
+
             const payload = {
               id: validUser.id,
               customerId: validUser.customer.id,
@@ -70,6 +71,12 @@ export class UserService {
               authenticated: true,
               statusCode: 200
               // here will be include order & cart of customer
+            }
+            return result;
+          } else if(validUser.role === 'customer' && validUser.customer.account_status !== "active") {
+            const result: UserApiResponse = {
+              message: `Your account isn't active. Please contact with support for re-active`,
+              statusCode: 403
             }
             return result;
           } else if(validUser.role === 'admin') {
