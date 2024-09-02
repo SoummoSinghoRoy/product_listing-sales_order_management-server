@@ -9,6 +9,7 @@ import { CustomerModule } from './modules/customer/customer.module';
 import { ProductModule } from './modules/product/product.module';
 import { CartModule } from './modules/cart/cart.module';
 import { OrderModule } from './modules/order/order.module';
+import { SaleOrderModule } from './modules/sale_order/sale_order.module';
 
 @Module({
   imports: [DatabaseModule, UserModule, CustomerModule,
@@ -18,7 +19,8 @@ import { OrderModule } from './modules/order/order.module';
     }),
     ProductModule,
     CartModule,
-    OrderModule
+    OrderModule,
+    SaleOrderModule
   ],
   controllers: [AppController],
   providers: [AppService, JwtAuthService],

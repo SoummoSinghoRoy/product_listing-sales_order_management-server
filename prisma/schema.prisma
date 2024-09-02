@@ -60,7 +60,7 @@ model Cart {
   order       Order?     @relation() 
 }
 
-// order place/confirm korle order status "accepted" dekhabe. sale order admin confirm hole dekhabe processing.
+// customer order place/confirm korle order status "accepted" dekhabe. sale order admin confirm hole dekhabe processing.
 model Order {
   id              Int        @id @default(autoincrement())
   customer        Customer   @relation(fields: [customerId], references: [id])
@@ -69,7 +69,7 @@ model Order {
   cartId          Int        @unique()
   order_amount    Int
   order_date      String
-  order_status    String 
+  order_status    String     @default("uninitialized")
   shipping_address String
   payment_method   String    @default("cash")
   sale_order      SaleOrder? @relation()
@@ -83,6 +83,6 @@ model SaleOrder {
   total_amount  Int
   paid          Int
   due           Int
-  sale_date     DateTime @default(now())
+  sale_date     String
   order_status  String   @default("ongoing")
 }
