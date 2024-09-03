@@ -11,7 +11,7 @@ export class OrderController {
 
   @Post('/make/:cartId')
   @UseGuards(AuthGuard)
-  async makeOrder(@Body() reqBody: CreateOrderDto, @Param() params: any, @Res() res: Response) {
+  async makeOrder(@Param() params: any, @Body() reqBody: CreateOrderDto, @Res() res: Response) {
     try {
       const validationResult = this.orderValidation.productAddToCartValidation(reqBody);
       if(!validationResult.isValid) {
@@ -21,7 +21,7 @@ export class OrderController {
           statusCode: 400,
         }
         res.json(apiResponse);
-      } else {
+      } else {        
         const result = await this.orderService.acceptOrder(reqBody, params.cartId);
         const apiResponse: OrderApiResponse = {
           message: result.message,

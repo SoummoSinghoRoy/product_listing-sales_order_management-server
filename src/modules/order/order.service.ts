@@ -24,7 +24,7 @@ export class OrderService {
         }
       });
 
-      if(cart && cart.order?.order_status === "uninitialized") {
+      if(cart) {
         const date = moment().tz('Asia/Dhaka').format('YYYY-MM-DD');
 
         let totalAmount: number = 0; 
@@ -253,7 +253,3 @@ export class OrderService {
     }
   }
 }
-
-// sale-order, order accept houyar por eta only admin korbe. order accepted hobe tarpor admin order details dekhbe. sekhan theke order confirm korle sale order karjokor hobe. ejonyo request theke reject othoba confirm message nibo. reject message hole order model er order status reject hobe ebong sale order record thakbe na. confirm message hole order status ongoing dekhabe. pashapashi cart er order_status processing hobe. order delivery kore felle sale order status update kore delivered dekhabe, ebong cart er order status delivered dekhabo. 
-
-// all customers & orders a pagination rakhte hobe.

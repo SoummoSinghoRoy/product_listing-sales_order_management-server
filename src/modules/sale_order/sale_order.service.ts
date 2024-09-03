@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as moment from 'moment';
 import { DatabaseService } from 'src/database/database.service';
-import { QueryReqEntitiesDto, SaleOrderApiResponse, SaleOrderCreateDto } from 'src/dto/sale_order.dto';
+import { DeliveryConfirmationReqDto, DueUpdateReqDto, QueryReqEntitiesDto, SaleOrderApiResponse, SaleOrderCreateDto } from 'src/dto/sale_order.dto';
 
 @Injectable()
 export class SaleOrderService {
@@ -36,6 +36,8 @@ export class SaleOrderService {
               total_amount: validOrder.order_amount,
               paid: reqBody.paid,
               due: reqBody.due,
+              payment_status: validOrder.order_amount === reqBody.paid ? "paid" : "due",
+              last_payment_date: reqBody.payment_date,
               sale_date: date
             }
           });
@@ -92,5 +94,103 @@ export class SaleOrderService {
     }
   };
 
-  // order delivered hoye gele sale_order status update hobe. ebong dekhabe delivered ebong order data'r order status dekhabe on going/processing
+  async handleOrderDelivery(confirmationReqBody: DeliveryConfirmationReqDto, saleOrderId: string): Promise<SaleOrderApiResponse> {
+    try {
+      const validSaleOrder = await this.prismaDB.saleOrder.findUnique({
+        where: {
+          id: parseInt(saleOrderId)
+        }
+      });
+      if(validSaleOrder) {
+        if(confirmationReqBody.action === 'yes') {
+          const updatedSaleOrder = await this.prismaDB.saleOrder.update({
+            where: {
+              id: validSaleOrder.id
+            },
+            data: {
+              order_status: 'delivered'
+            }
+          });
+          await this.prismaDB.order.update({
+            where: {
+              id: validSaleOrder.orderId
+            },
+            data: {
+              order_status: updatedSaleOrder.order_status
+            }
+          });
+          const result: SaleOrderApiResponse = {
+            message: `Order successfully delivered`,
+            statusCode: 200
+          }
+          return result;
+        } else {
+          const result: SaleOrderApiResponse = {
+            message: `Request denied`,
+            statusCode: 403
+          }
+          return result;
+        }
+      } else {
+        const result: SaleOrderApiResponse = {
+          message: `Sale order not valid`,
+          statusCode: 404
+        }
+        return result;
+      }
+    } catch (error) {
+      console.log(error);
+      const result: SaleOrderApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      return result;
+    }
+  };
+
+  async handleDueUpdate(dueUpdateReqBody: DueUpdateReqDto, saleOrderId: string): Promise<SaleOrderApiResponse> {
+    try {
+      const validSaleOrder = await this.prismaDB.saleOrder.findUnique({
+        where: {
+          id: parseInt(saleOrderId)
+        }
+      });
+      if(validSaleOrder) {
+        const updatedPaid = validSaleOrder.paid + dueUpdateReqBody.newPaidAmount;
+        const updatedSaleOrder = await this.prismaDB.saleOrder.update({
+          where: {
+            id: validSaleOrder.id
+          },
+          data: {
+            paid: updatedPaid,
+            due: dueUpdateReqBody.newDueAmount,
+            last_payment_date: dueUpdateReqBody.payment_date,
+            payment_status: validSaleOrder.total_amount === updatedPaid ? "paid" : "due"
+          }
+        });
+        const result: SaleOrderApiResponse = {
+          message: `Due successfully updated`,
+          sale_order: updatedSaleOrder,
+          statusCode: 200
+        }
+        return result;
+      } else {
+        const result: SaleOrderApiResponse = {
+          message: `Sale order not valid`,
+          statusCode: 404
+        }
+        return result;
+      }
+    } catch (error) {
+      console.log(error);
+      const result: SaleOrderApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      return result;
+    }
+  };
+
 }
+
+// all customers & orders a pagination rakhte hobe.
