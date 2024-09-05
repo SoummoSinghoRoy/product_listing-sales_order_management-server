@@ -31,13 +31,13 @@ export class CartService {
               cart_status: 'pending'
             }
           });
-          // need to test for generate new cart for same customer. 
 
           if (!customerCart) {
             const createdCart = await this.prismaDB.cart.create({
               data: {
                 customerId: validCustomer.id,
-                added_date: date
+                added_date: date,
+                cart_status: 'pending'
               }
             });
             const addedCartItem = await this.prismaDB.cartItem.create({

@@ -57,7 +57,7 @@ model Cart {
   customer    Customer   @relation(fields: [customerId], references: [id])
   customerId  Int        
   added_date  String
-  cart_status String     @default("uninitialized")
+  cart_status String
   order       Order?     @relation() 
 }
 
