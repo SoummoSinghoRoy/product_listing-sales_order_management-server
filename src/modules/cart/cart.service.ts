@@ -5,7 +5,7 @@ import { AddToCartApiResponse, CreateCartDto } from 'src/dto/cart.dto';
 
 @Injectable()
 export class CartService {
-  constructor(private prismaDB: DatabaseService) {}
+  constructor(private prismaDB: DatabaseService) { }
 
   async addToCart(createReqData: CreateCartDto, customerId?: number): Promise<AddToCartApiResponse> {
     try {
@@ -15,105 +15,139 @@ export class CartService {
         }
       });
 
-      if(validCustomer) {
+      if (validCustomer) {
+        const date = moment().tz('Asia/Dhaka').format('YYYY-MM-DD');
+
         const validProduct = await this.prismaDB.product.findUnique({
           where: {
             id: parseInt(createReqData.productId)
           }
         });
 
-        if(validProduct) {
-          const customerExistingCart = await this.prismaDB.cart.findUnique({
+        if (validProduct) {
+          const customerCart = await this.prismaDB.cart.findFirst({
             where: {
-              customerId: validCustomer.id
+              customerId: validCustomer.id,
+              cart_status: 'pending'
             }
           });
+          // need to test for generate new cart for same customer. 
 
-          if(!customerExistingCart) {
-            const date = moment().tz('Asia/Dhaka').format('YYYY-MM-DD');
-            const addedProductToCart = await this.prismaDB.cart.create({
+          if (!customerCart) {
+            const createdCart = await this.prismaDB.cart.create({
               data: {
                 customerId: validCustomer.id,
-                added_date: date,
-                cart_items: {
-                  create: {
-                    productId: validProduct.id,
-                    quantity: parseInt(createReqData.quantity),
-                    amount: parseInt(createReqData.quantity) * validProduct.sale_price
-                  }
-                }
+                added_date: date
+              }
+            });
+            const addedCartItem = await this.prismaDB.cartItem.create({
+              data: {
+                productId: validProduct.id,
+                quantity: parseInt(createReqData.quantity),
+                amount: parseInt(createReqData.quantity) * validProduct.sale_price,
+                cartId: createdCart.id
               },
               include: {
-                cart_items: {
-                  include: {
-                    product: true
-                  }
-                }
+                product: true,
+                cart: true,
               }
             });
 
-            if(addedProductToCart) {
+            if (addedCartItem) {
               await this.prismaDB.product.update({
                 where: {
-                  id: validProduct.id
+                  id: addedCartItem.productId
                 },
                 data: {
-                  quantity: validProduct.quantity - parseInt(createReqData.quantity)
+                  quantity: validProduct.quantity - addedCartItem.quantity
                 }
-              });  
+              });
             }
             const result: AddToCartApiResponse = {
               message: `Item added to cart`,
               cart: {
-                id: addedProductToCart.id,
-                customerId: addedProductToCart.customerId,
-                cartItems: addedProductToCart.cart_items,
-                added_date: addedProductToCart.added_date
+                id: addedCartItem.cartId,
+                customerId: addedCartItem.cart.customerId,
+                cartItems: addedCartItem,
+                added_date: addedCartItem.cart.added_date
               },
               statusCode: 200
             };
             return result;
-          } else {
-            const updatedCart = await this.prismaDB.cart.update({
-              where: {
-                id: customerExistingCart.id
-              },
+          } else if(customerCart && (customerCart.cart_status !== "pending" && customerCart.cart_status === "done")) {
+            const createdCart = await this.prismaDB.cart.create({
               data: {
-                cart_items: {
-                  create: {
-                    productId: validProduct.id,
-                    quantity: parseInt(createReqData.quantity),
-                    amount: parseInt(createReqData.quantity) * validProduct.sale_price
-                  }
-                }
-              },
-              include: {
-                cart_items: {
-                  include: {
-                    product: true
-                  }
-                }
+                customerId: validCustomer.id,
+                added_date: date,
+                cart_status: 'pending'
               }
             });
 
-            if(updatedCart) {
+            const addedCartItem = await this.prismaDB.cartItem.create({
+              data: {
+                productId: validProduct.id,
+                quantity: parseInt(createReqData.quantity),
+                amount: parseInt(createReqData.quantity) * validProduct.sale_price,
+                cartId: createdCart.id
+              },
+              include: {
+                product: true,
+                cart: true,
+              }
+            });
+
+            if (addedCartItem) {
+              await this.prismaDB.product.update({
+                where: {
+                  id: addedCartItem.productId
+                },
+                data: {
+                  quantity: validProduct.quantity - addedCartItem.quantity
+                }
+              });
+              const result: AddToCartApiResponse = {
+                message: `Item added to cart`,
+                cart: {
+                  id: addedCartItem.cartId,
+                  customerId: addedCartItem.cart.customerId,
+                  cartItems: addedCartItem,
+                  added_date: addedCartItem.cart.added_date,
+                },
+                statusCode: 200
+              };
+              return result;
+            }
+          } else {
+            const addedCartItem = await this.prismaDB.cartItem.create({
+              data: {
+                productId: validProduct.id,
+                quantity: parseInt(createReqData.quantity),
+                amount: parseInt(createReqData.quantity) * validProduct.sale_price,
+                cartId: customerCart.id
+              },
+              include: {
+                product: true,
+                cart: true,
+              }
+            });
+            if (addedCartItem) {
               await this.prismaDB.product.update({
                 where: {
                   id: validProduct.id
                 },
                 data: {
-                  quantity: validProduct.quantity - parseInt(createReqData.quantity)
+                  quantity: validProduct.quantity - addedCartItem.quantity
                 }
-              });  
+              });
             }
-
+          
             const result: AddToCartApiResponse = {
               message: `Item added to cart`,
               cart: {
-                id: updatedCart.id,
-                customerId: updatedCart.customerId,
-                cartItems: updatedCart.cart_items,
-                added_date: updatedCart.added_date
+                id: addedCartItem.cartId,
+                customerId: addedCartItem.cart.customerId,
+                cartItems: addedCartItem,
+                added_date: addedCartItem.cart.added_date
               },
               statusCode: 200
             };
@@ -148,6 +182,7 @@ export class CartService {
       const cartDetails = await this.prismaDB.cart.findUnique({
         where: {
           id: parseInt(cartId),
+          cart_status: 'pending'
         },
         include: {
           cart_items: true,
@@ -155,8 +190,8 @@ export class CartService {
           order: true
         }
       });
-      
-      if(cartDetails && (cartDetails.order?.order_status !== "accepted" && cartDetails.order?.order_status !==  "processing")) {
+
+      if (cartDetails && (cartDetails.order?.order_status !== "accepted" && cartDetails.order?.order_status !== "ongoing")) {
         const result: AddToCartApiResponse = {
           message: `Cart items found`,
           cart: {
@@ -189,11 +224,11 @@ export class CartService {
     try {
       const validCartItem = await this.prismaDB.cartItem.findUnique({
         where: {
-          id: parseInt(cartItemId) 
+          id: parseInt(cartItemId)
         }
       });
 
-      if(validCartItem) {
+      if (validCartItem) {
         const deletedItem = await this.prismaDB.cartItem.delete({
           where: {
             id: parseInt(cartItemId)
@@ -224,7 +259,7 @@ export class CartService {
           }
         });
 
-        if(customerCart.cart_items.length === 0) {
+        if (customerCart.cart_items.length === 0) {
           await this.prismaDB.cart.delete({
             where: {
               id: customerCart.id
@@ -249,3 +284,85 @@ export class CartService {
     }
   };
 }
+
+
+/*else if(customerCart && customerCart.cart_status === "pending") {
+            const addedCartItem = await this.prismaDB.cartItem.create({
+              data: {
+                productId: validProduct.id,
+                quantity: parseInt(createReqData.quantity),
+                amount: parseInt(createReqData.quantity) * validProduct.sale_price,
+                cartId: customerCart.id
+              },
+              include: {
+                product: true,
+                cart: true,
+              }
+            });
+          
+            if (addedCartItem) {
+              await this.prismaDB.product.update({
+                where: {
+                  id: validProduct.id
+                },
+                data: {
+                  quantity: validProduct.quantity - addedCartItem.quantity
+                }
+              });
+            }
+          
+            const result: AddToCartApiResponse = {
+              message: `Item added to cart`,
+              cart: {
+                id: addedCartItem.cartId,
+                customerId: addedCartItem.cart.customerId,
+                cartItems: addedCartItem,
+                added_date: addedCartItem.cart.added_date
+              },
+              statusCode: 200
+            };
+            return result;
+          } else if(customerCart && customerCart.cart_status !== "pending") {
+            const createdCart = await this.prismaDB.cart.create({
+              data: {
+                customerId: validCustomer.id,
+                added_date: date,
+                cart_status: 'pending'
+              }
+            });
+
+            const addedCartItem = await this.prismaDB.cartItem.create({
+              data: {
+                productId: validProduct.id,
+                quantity: parseInt(createReqData.quantity),
+                amount: parseInt(createReqData.quantity) * validProduct.sale_price,
+                cartId: createdCart.id
+              },
+              include: {
+                product: true,
+                cart: true,
+              }
+            });
+
+            if (addedCartItem) {
+              await this.prismaDB.product.update({
+                where: {
+                  id: addedCartItem.productId
+                },
+                data: {
+                  quantity: validProduct.quantity - addedCartItem.quantity
+                }
+              });
+              const result: AddToCartApiResponse = {
+                message: `Item added to cart`,
+                cart: {
+                  id: addedCartItem.cartId,
+                  customerId: addedCartItem.cart.customerId,
+                  cartItems: addedCartItem,
+                  added_date: addedCartItem.cart.added_date,
+                },
+                statusCode: 200
+              };
+              return result;
+            }
+          }*/

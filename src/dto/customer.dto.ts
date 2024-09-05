@@ -22,6 +22,4 @@ export class CustomerApiResponse extends UserApiResponse {
 export class CustomerDto extends UserDto {
   contact_no?: string;
   address?: string;
-  cart?: any;
-  order?: any;
 }

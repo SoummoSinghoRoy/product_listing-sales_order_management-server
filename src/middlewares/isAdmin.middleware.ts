@@ -15,6 +15,12 @@ export class IsAdminMiddleware implements NestMiddleware {
         if(payload && payload.role === 'admin') {
           req['user'] = payload;
           next()
+        } else if(!payload) {
+          const apiResponse = {
+            message: `Session expired`,
+            statusCode: 403 
+          }
+          res.json(apiResponse);
         } else {
           const apiResponse = {
             message: `Access restricted`,

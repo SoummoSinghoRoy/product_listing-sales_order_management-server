@@ -55,8 +55,9 @@ model Cart {
   id          Int        @id @default(autoincrement())
   cart_items  CartItem[] @relation()
   customer    Customer   @relation(fields: [customerId], references: [id])
-  customerId  Int        @unique()
+  customerId  Int        
   added_date  String
+  cart_status String     @default("uninitialized")
   order       Order?     @relation() 
 }
 
@@ -68,7 +69,7 @@ model Order {
   cartId          Int        @unique()
   order_amount    Int
   order_date      String
-  order_status    String     @default("uninitialized")
+  order_status    String
   shipping_address String
   payment_method   String    @default("cash")
   sale_order      SaleOrder? @relation()
@@ -87,3 +88,4 @@ model SaleOrder {
   sale_date     String
   order_status  String   @default("ongoing")
 }
+

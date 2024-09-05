@@ -9,7 +9,7 @@ export class OrderService {
 
   async acceptOrder(orderCreateReqBody: CreateOrderDto, cartId: string): Promise<OrderApiResponse> {
     try {
-      const cart = await this.prismaDB.cart.findUnique({
+      const validCart = await this.prismaDB.cart.findUnique({
         where: {
           id: parseInt(cartId)
         },
@@ -24,22 +24,30 @@ export class OrderService {
         }
       });
 
-      if(cart) {
+      if(validCart) {
         const date = moment().tz('Asia/Dhaka').format('YYYY-MM-DD');
 
         let totalAmount: number = 0; 
-        cart.cart_items.forEach((item) => {
+        validCart.cart_items.forEach((item) => {
           totalAmount += item.amount 
         });
 
         const order = await this.prismaDB.order.create({
           data: {
-            customerId: cart.customerId,
-            cartId: cart.id,
+            customerId: validCart.customerId,
+            cartId: validCart.id,
             order_amount: totalAmount,
             order_date: date,
             order_status: "accepted",
             shipping_address: orderCreateReqBody.shipping_address 
+          }
+        });
+        await this.prismaDB.cart.update({
+          where: {
+            id: validCart.id
+          },
+          data: {
+            cart_status: "done"
           }
         });
         const result: OrderApiResponse = {
