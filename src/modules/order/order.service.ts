@@ -82,6 +82,146 @@ export class OrderService {
     }
   };
 
+  async allOrderOfAllCustomers(): Promise<OrderApiResponse> {
+    try {
+      const allCustomersOrders = await this.prismaDB.order.findMany({
+        include: {
+          customer: true,
+          cart: {
+            include: {
+              cart_items: {
+                include: {
+                  product: true
+                }
+              }
+            }
+          }
+        }
+      });
+
+      if(allCustomersOrders.length !== 0) {
+        const result: OrderApiResponse = {
+          message: `All orders retrieve successfully`,
+          order_details: allCustomersOrders,
+          statusCode: 200
+        }
+        return result;
+      } else {
+        const result: OrderApiResponse = {
+          message: `Orders empty`,
+          statusCode: 404
+        }
+        return result;
+      }
+    } catch (error) {
+      console.log(error);
+      const result: OrderApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      return result;
+    }
+  };
+
+  async getSingleOrder(orderId: string): Promise<OrderApiResponse> {
+    try {
+      const validOrder = await this.prismaDB.order.findUnique({
+        where: {
+          id: parseInt(orderId)
+        },
+        include: {
+          customer: true,
+          cart: {
+            include: {
+              cart_items: {
+                include: {
+                  product: true
+                }
+              }
+            }
+          }
+        }
+      });
+      if(validOrder) {
+        const result: OrderApiResponse = {
+          message: `Customer order found`,
+          order_details: validOrder,
+          statusCode: 200
+        }
+        return result;
+      } else {
+        const result: OrderApiResponse = {
+          message: `Order not valid`,
+          statusCode: 404
+        }
+        return result;
+      }
+    } catch (error) {
+      console.log(error);
+      const result: OrderApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      return result;
+    }
+  };
+
+  async allOrderOfSingleCustomer(customerId: string): Promise<OrderApiResponse> {
+    try {
+      const validCustomer = await this.prismaDB.customer.findUnique({
+        where: {
+          id: parseInt(customerId)
+        }
+      });
+      if(validCustomer) {
+        const orders = await this.prismaDB.order.findMany({
+          where: {
+            customerId: validCustomer.id
+          },
+          include: {
+            customer: true,
+            cart: {
+              include: {
+                cart_items: {
+                  include: {
+                    product: true
+                  }
+                }
+              }
+            }
+          }
+        }); 
+        if(orders.length !== 0) {
+          const result: OrderApiResponse = {
+            message: `Order retrieve successfully`,
+            order_details: orders,
+            statusCode: 200
+          }
+          return result;
+        } else {
+          const result: OrderApiResponse = {
+            message: `Order is empty`,
+            statusCode: 404
+          }
+          return result;
+        }
+      } else {
+        const result: OrderApiResponse = {
+          message: `Customer not valid`,
+          statusCode: 404
+        }
+        return result;
+      }
+    } catch (error) {
+      console.log(error);
+      const result: OrderApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      return result;
+    }
+  };
+
   async cancelOrder(orderId: string): Promise<OrderApiResponse> {
     try {
       const validOrder = await this.prismaDB.order.findUnique({
@@ -163,101 +303,4 @@ export class OrderService {
       return result;
     }
   };
-
-  async allOrderOfSingleCustomer(customerId: string): Promise<OrderApiResponse> {
-    try {
-      const validCustomer = await this.prismaDB.customer.findUnique({
-        where: {
-          id: parseInt(customerId)
-        }
-      });
-      if(validCustomer) {
-        const orders = await this.prismaDB.order.findMany({
-          where: {
-            customerId: validCustomer.id
-          },
-          include: {
-            customer: true,
-            cart: {
-              include: {
-                cart_items: {
-                  include: {
-                    product: true
-                  }
-                }
-              }
-            }
-          }
-        }); 
-        if(orders.length !== 0) {
-          const result: OrderApiResponse = {
-            message: `Order retrieve successfully`,
-            order_details: orders,
-            statusCode: 200
-          }
-          return result;
-        } else {
-          const result: OrderApiResponse = {
-            message: `Order is empty`,
-            statusCode: 404
-          }
-          return result;
-        }
-      } else {
-        const result: OrderApiResponse = {
-          message: `Customer not valid`,
-          statusCode: 404
-        }
-        return result;
-      }
-    } catch (error) {
-      console.log(error);
-      const result: OrderApiResponse = {
-        message: `Internal server error`,
-        statusCode: 500
-      }
-      return result;
-    }
-  };
-  
-  async allOrderOfAllCustomers(): Promise<OrderApiResponse> {
-    try {
-      const allCustomersOrders = await this.prismaDB.order.findMany({
-        include: {
-          customer: true,
-          cart: {
-            include: {
-              cart_items: {
-                include: {
-                  product: true
-                }
-              }
-            }
-          }
-        }
-      });
-
-      if(allCustomersOrders.length !== 0) {
-        const result: OrderApiResponse = {
-          message: `All orders retrieve successfully`,
-          order_details: allCustomersOrders,
-          statusCode: 200
-        }
-        return result;
-      } else {
-        const result: OrderApiResponse = {
-          message: `Orders empty`,
-          statusCode: 404
-        }
-        return result;
-      }
-    } catch (error) {
-      console.log(error);
-      const result: OrderApiResponse = {
-        message: `Internal server error`,
-        statusCode: 500
-      }
-      return result;
-    }
-  }
 }

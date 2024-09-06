@@ -193,4 +193,5 @@ export class SaleOrderService {
 
 }
 
+// due ba order id dara order query kore return korte hobe
 // all customers & orders a pagination rakhte hobe.

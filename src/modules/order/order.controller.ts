@@ -60,6 +60,27 @@ export class OrderController {
     }
   };
 
+  @Get('/single/:orderId')
+  @UseGuards(AuthGuard)
+  async retrieveSingleOrder(@Param() params: any, @Res() res: Response): Promise<void> {
+    try {
+      const result = await this.orderService.getSingleOrder(params.orderId);
+      const apiResponse: OrderApiResponse = {
+        message: result.message,
+        order_details: result.statusCode === 200 && result.order_details,
+        statusCode: result.statusCode
+      }
+      res.json(apiResponse);
+    } catch (error) {
+      console.log(error);
+      const apiResponse: OrderApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      res.json(apiResponse);
+    }
+  };
+
   @Get('/all-orders/:customerId')
   @UseGuards(AuthGuard)
   async retrieveAllOrderOfSingleCustomer(@Param() params: any, @Req() req: Request, @Res() res: Response): Promise<void> {
