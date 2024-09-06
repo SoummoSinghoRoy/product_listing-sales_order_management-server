@@ -1,7 +1,7 @@
-import { Body, Controller, Param, Patch, Post, Query, Res } from '@nestjs/common';
+import { Body, Controller, Get, Param, Patch, Post, Query, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { SaleOrderService } from './sale_order.service';
-import { DeliveryConfirmationReqDto, DueUpdateReqDto, QueryReqEntitiesDto, SaleOrderApiResponse, SaleOrderCreateDto } from 'src/dto/sale_order.dto';
+import { DeliveryConfirmationReqDto, DueUpdateReqDto, QueryReqEntitiesDto, SaleOrderApiResponse, SaleOrderCheckReqBody, SaleOrderCreateDto } from 'src/dto/sale_order.dto';
 import { SaleOrderValidationService } from 'src/custom-validation/sale_order.validation';
 
 @Controller('sale-order')
@@ -53,6 +53,46 @@ export class SaleOrderController {
       res.json(apiResponse);
     }
   };
+
+  @Get('/all')
+  async retrieveAllSalesOrders(@Res() res: Response): Promise<void> {
+    try {
+      const result = await this.saleOrderService.findAllSaleOrders();
+      const apiResponse: SaleOrderApiResponse = {
+        message: result.message,
+        sale_order: result.statusCode === 200 && result.sale_order,
+        statusCode: result.statusCode
+      }
+      res.json(apiResponse);
+    } catch (error) {
+      console.log(error);
+      const apiResponse: SaleOrderApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      res.json(apiResponse);
+    }
+  };
+
+  @Get('/queries')
+  async retrieveSaleOrderByPaymentStatusOrOrderId(@Body() reqBody: SaleOrderCheckReqBody, @Res() res: Response): Promise<void> {
+    try {
+      const result = await this.saleOrderService.findSaleOrderByPaymentStatusOrOrderId(reqBody);
+      const apiResponse: SaleOrderApiResponse = {
+        message: result.message,
+        sale_order: result.statusCode === 200 && result.sale_order,
+        statusCode: result.statusCode
+      }
+      res.json(apiResponse);
+    } catch (error) {
+      console.log(error);
+      const apiResponse: SaleOrderApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      res.json(apiResponse);
+    }
+  }
 
   @Patch('/delivery/:saleOrderId')
   async orderDeliveryConfirmation (@Param() params: any, @Body() reqBody: DeliveryConfirmationReqDto, @Res() res: Response): Promise<void> {

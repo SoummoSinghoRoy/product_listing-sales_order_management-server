@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import * as moment from 'moment';
 import { DatabaseService } from 'src/database/database.service';
-import { DeliveryConfirmationReqDto, DueUpdateReqDto, QueryReqEntitiesDto, SaleOrderApiResponse, SaleOrderCreateDto } from 'src/dto/sale_order.dto';
+import { DeliveryConfirmationReqDto, SaleOrderCheckReqBody, DueUpdateReqDto, QueryReqEntitiesDto, SaleOrderApiResponse, SaleOrderCreateDto } from 'src/dto/sale_order.dto';
 
 @Injectable()
 export class SaleOrderService {
-  constructor(private prismaDB: DatabaseService) {}
+  constructor(private prismaDB: DatabaseService) { }
 
   async handleSaleOrder(reqQuery: QueryReqEntitiesDto, reqBody?: SaleOrderCreateDto): Promise<SaleOrderApiResponse> {
     try {
@@ -27,8 +27,8 @@ export class SaleOrderService {
         }
       });
 
-      if(validOrder && validOrder.order_status === "accepted") {
-        if(reqQuery.action === 'approve') {
+      if (validOrder && validOrder.order_status === "accepted") {
+        if (reqQuery.action === 'approve') {
           const date = moment().tz('Asia/Dhaka').format('YYYY-MM-DD');
           const sale_order = await this.prismaDB.saleOrder.create({
             data: {
@@ -56,7 +56,7 @@ export class SaleOrderService {
             statusCode: 200
           }
           return result;
-        } else if(reqQuery.action === 'reject') {
+        } else if (reqQuery.action === 'reject') {
           await this.prismaDB.order.update({
             where: {
               id: validOrder.id
@@ -76,7 +76,7 @@ export class SaleOrderService {
             statusCode: 403
           }
           return result;
-        } 
+        }
       } else {
         const result: SaleOrderApiResponse = {
           message: `Order not valid`,
@@ -101,8 +101,8 @@ export class SaleOrderService {
           id: parseInt(saleOrderId)
         }
       });
-      if(validSaleOrder) {
-        if(confirmationReqBody.action === 'yes') {
+      if (validSaleOrder) {
+        if (confirmationReqBody.action === 'yes') {
           const updatedSaleOrder = await this.prismaDB.saleOrder.update({
             where: {
               id: validSaleOrder.id
@@ -155,7 +155,7 @@ export class SaleOrderService {
           id: parseInt(saleOrderId)
         }
       });
-      if(validSaleOrder) {
+      if (validSaleOrder) {
         const updatedPaid = validSaleOrder.paid + dueUpdateReqBody.newPaidAmount;
         const updatedSaleOrder = await this.prismaDB.saleOrder.update({
           where: {
@@ -191,7 +191,109 @@ export class SaleOrderService {
     }
   };
 
+  async findSaleOrderByPaymentStatusOrOrderId(searchReqbody: SaleOrderCheckReqBody): Promise<SaleOrderApiResponse> {
+    try {
+      if(searchReqbody.payment_status && searchReqbody.orderId) {
+        const validSaleOrder = await this.prismaDB.saleOrder.findUnique({
+          where: {
+            orderId: parseInt(searchReqbody.orderId),
+            payment_status: searchReqbody.payment_status
+          }
+        });
+        if(validSaleOrder) {
+          const result: SaleOrderApiResponse = {
+            message: `Sale order found`,
+            sale_order: validSaleOrder,
+            statusCode: 200
+          }
+          return result;
+        } else {
+          const result: SaleOrderApiResponse = {
+            message: `Sale order not found`,
+            statusCode: 404
+          }
+          return result;
+        }
+      } else if(searchReqbody.payment_status) {
+        const validSaleOrder = await this.prismaDB.saleOrder.findMany({
+          where: {
+            payment_status: searchReqbody.payment_status
+          }
+        });
+
+        if(validSaleOrder.length !== 0) {
+          const result: SaleOrderApiResponse = {
+            message: `Sale orders found`,
+            sale_order: validSaleOrder,
+            statusCode: 200
+          }
+          return result;
+        } else {
+          const result: SaleOrderApiResponse = {
+            message: `Sale orders not found`,
+            statusCode: 404
+          }
+          return result;
+        }
+      } else if(searchReqbody.orderId) {
+        const validSaleOrder = await this.prismaDB.saleOrder.findUnique({
+          where: {
+            orderId: parseInt(searchReqbody.orderId)
+          }
+        });
+        if(validSaleOrder) {
+          const result: SaleOrderApiResponse = {
+            message: `Sale order found`,
+            sale_order: validSaleOrder,
+            statusCode: 200
+          }
+          return result;
+        } else {
+          const result: SaleOrderApiResponse = {
+            message: `Sale order not found`,
+            statusCode: 404
+          }
+          return result;
+        }
+      }
+    } catch (error) {
+      console.log(error);
+      const result: SaleOrderApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      return result;
+    }
+  };
+
+  async findAllSaleOrders(): Promise<SaleOrderApiResponse> {
+    try {
+      const allSaleOrders = await this.prismaDB.saleOrder.findMany();
+      if(allSaleOrders.length !== 0) {
+        const result: SaleOrderApiResponse = {
+          message: `Sale orders found`,
+          sale_order: allSaleOrders,
+          statusCode: 200
+        }
+        return result;
+      } else {
+        const result: SaleOrderApiResponse = {
+          message: `Sale orders is empty`,
+          statusCode: 404
+        }
+        return result;
+      }
+    } catch (error) {
+      console.log(error);
+      const result: SaleOrderApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      return result;
+    }
+  }
 }
 
-// due ba order id dara order query kore return korte hobe
-// all customers & orders a pagination rakhte hobe.
+
+// single sale order niye kaj korte hobe.
+// all customers, orders(admin end e) & sale order a pagination rakhte hobe.

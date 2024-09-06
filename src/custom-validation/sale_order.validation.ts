@@ -18,8 +18,14 @@ export class SaleOrderValidationService {
 
     if(!reqBody.paid) {
       error.paid = `Paid amount is required`
-    }else if(reqBody.paid && order.order_amount < reqBody.paid) {
-      error.paid = `Paid amount isn't valid`
+    }
+
+    if(order) {
+      if(reqBody.paid && order.order_amount < reqBody.paid) {
+        error.paid = `Paid amount isn't valid`
+      }
+    } else {
+      error.paid = `Error occurred`
     }
 
     if(!reqBody.payment_date) {

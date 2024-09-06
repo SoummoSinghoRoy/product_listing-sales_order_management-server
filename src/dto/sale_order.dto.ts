@@ -19,9 +19,9 @@ export class DtoValidationResult {
   isValid: boolean;
 }
 
-export class DueCheckReqBody {
-  account_status: string;
-  orderId: string;
+export class SaleOrderCheckReqBody {
+  payment_status?: string;
+  orderId?: string;
 }
 
 export class DueUpdateReqDto {

@@ -40,6 +40,7 @@ export class OrderController {
     }
   };
 
+  // need to apply pagination
   @Get('/all')
   async allOrdersListOfAllCustomers(@Res() res: Response): Promise<void> {
     try {

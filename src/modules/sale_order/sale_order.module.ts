@@ -15,6 +15,8 @@ export class SaleOrderModule implements NestModule {
             .apply(IsAdminMiddleware)
             .forRoutes(
               { path: 'sale-order/', method: RequestMethod.POST },
+              { path: 'sale-order/all', method: RequestMethod.GET },
+              { path: 'sale-order/queries', method: RequestMethod.GET },
               { path: 'sale-order/delivery/:saleOrderId', method: RequestMethod.PATCH },
               { path: 'sale-order/due/update/:saleOrderId', method: RequestMethod.PATCH }
             )
