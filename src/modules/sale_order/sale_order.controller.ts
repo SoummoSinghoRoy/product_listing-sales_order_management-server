@@ -74,6 +74,26 @@ export class SaleOrderController {
     }
   };
 
+  @Get('/single/:saleOrderId')
+  async retrieveSingleSaleOrder(@Param() params: any, @Res() res: Response): Promise<void> {
+    try {
+      const result = await this.saleOrderService.getSingleSaleOrder(params.saleOrderId);
+      const apiResponse: SaleOrderApiResponse = {
+        message: result.message,
+        sale_order: result.statusCode === 200 && result.sale_order,
+        statusCode: result.statusCode
+      }
+      res.json(apiResponse);
+    } catch (error) {
+      console.log(error);
+      const apiResponse: SaleOrderApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      res.json(apiResponse);
+    }
+  }
+
   @Get('/queries')
   async retrieveSaleOrderByPaymentStatusOrOrderId(@Body() reqBody: SaleOrderCheckReqBody, @Res() res: Response): Promise<void> {
     try {

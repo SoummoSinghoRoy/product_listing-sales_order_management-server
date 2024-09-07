@@ -5,7 +5,7 @@ import { DeliveryConfirmationReqDto, SaleOrderCheckReqBody, DueUpdateReqDto, Que
 
 @Injectable()
 export class SaleOrderService {
-  constructor(private prismaDB: DatabaseService) { }
+  constructor(private prismaDB: DatabaseService) {}
 
   async handleSaleOrder(reqQuery: QueryReqEntitiesDto, reqBody?: SaleOrderCreateDto): Promise<SaleOrderApiResponse> {
     try {
@@ -83,6 +83,155 @@ export class SaleOrderService {
           statusCode: 404
         }
         return result;
+      }
+    } catch (error) {
+      console.log(error);
+      const result: SaleOrderApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      return result;
+    }
+  };
+
+  async findAllSaleOrders(): Promise<SaleOrderApiResponse> {
+    try {
+      const allSaleOrders = await this.prismaDB.saleOrder.findMany();
+      if(allSaleOrders.length !== 0) {
+        const result: SaleOrderApiResponse = {
+          message: `Sale orders found`,
+          sale_order: allSaleOrders,
+          statusCode: 200
+        }
+        return result;
+      } else {
+        const result: SaleOrderApiResponse = {
+          message: `Sale orders is empty`,
+          statusCode: 404
+        }
+        return result;
+      }
+    } catch (error) {
+      console.log(error);
+      const result: SaleOrderApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      return result;
+    }
+  };
+
+  async getSingleSaleOrder(saleOrderId: string): Promise<SaleOrderApiResponse> {
+    try {
+      const validSaleOrder = await this.prismaDB.saleOrder.findUnique({
+        where: {
+          id: parseInt(saleOrderId)
+        },
+        include: {
+          order: {
+            include: {
+              customer: true,
+              cart: {
+                include: {
+                  cart_items: {
+                    include: {
+                      product: true
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      });
+      if(validSaleOrder) {
+        const result: SaleOrderApiResponse = {
+          message: `Sale order found`,
+          sale_order: validSaleOrder,
+          statusCode: 200
+        }
+        return result;
+      } else {
+        const result: SaleOrderApiResponse = {
+          message: `Sale order not valid`,
+          statusCode: 404
+        }
+        return result;
+      }
+    } catch (error) {
+      console.log(error);
+      const result: SaleOrderApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      return result;
+    }
+  };
+
+  async findSaleOrderByPaymentStatusOrOrderId(searchReqbody: SaleOrderCheckReqBody): Promise<SaleOrderApiResponse> {
+    try {
+      if(searchReqbody.payment_status && searchReqbody.orderId) {
+        const validSaleOrder = await this.prismaDB.saleOrder.findUnique({
+          where: {
+            orderId: parseInt(searchReqbody.orderId),
+            payment_status: searchReqbody.payment_status
+          }
+        });
+        if(validSaleOrder) {
+          const result: SaleOrderApiResponse = {
+            message: `Sale order found`,
+            sale_order: validSaleOrder,
+            statusCode: 200
+          }
+          return result;
+        } else {
+          const result: SaleOrderApiResponse = {
+            message: `Sale order not found`,
+            statusCode: 404
+          }
+          return result;
+        }
+      } else if(searchReqbody.payment_status) {
+        const validSaleOrder = await this.prismaDB.saleOrder.findMany({
+          where: {
+            payment_status: searchReqbody.payment_status
+          }
+        });
+
+        if(validSaleOrder.length !== 0) {
+          const result: SaleOrderApiResponse = {
+            message: `Sale orders found`,
+            sale_order: validSaleOrder,
+            statusCode: 200
+          }
+          return result;
+        } else {
+          const result: SaleOrderApiResponse = {
+            message: `Sale orders not found`,
+            statusCode: 404
+          }
+          return result;
+        }
+      } else if(searchReqbody.orderId) {
+        const validSaleOrder = await this.prismaDB.saleOrder.findUnique({
+          where: {
+            orderId: parseInt(searchReqbody.orderId)
+          }
+        });
+        if(validSaleOrder) {
+          const result: SaleOrderApiResponse = {
+            message: `Sale order found`,
+            sale_order: validSaleOrder,
+            statusCode: 200
+          }
+          return result;
+        } else {
+          const result: SaleOrderApiResponse = {
+            message: `Sale order not found`,
+            statusCode: 404
+          }
+          return result;
+        }
       }
     } catch (error) {
       console.log(error);
@@ -190,108 +339,6 @@ export class SaleOrderService {
       return result;
     }
   };
-
-  async findSaleOrderByPaymentStatusOrOrderId(searchReqbody: SaleOrderCheckReqBody): Promise<SaleOrderApiResponse> {
-    try {
-      if(searchReqbody.payment_status && searchReqbody.orderId) {
-        const validSaleOrder = await this.prismaDB.saleOrder.findUnique({
-          where: {
-            orderId: parseInt(searchReqbody.orderId),
-            payment_status: searchReqbody.payment_status
-          }
-        });
-        if(validSaleOrder) {
-          const result: SaleOrderApiResponse = {
-            message: `Sale order found`,
-            sale_order: validSaleOrder,
-            statusCode: 200
-          }
-          return result;
-        } else {
-          const result: SaleOrderApiResponse = {
-            message: `Sale order not found`,
-            statusCode: 404
-          }
-          return result;
-        }
-      } else if(searchReqbody.payment_status) {
-        const validSaleOrder = await this.prismaDB.saleOrder.findMany({
-          where: {
-            payment_status: searchReqbody.payment_status
-          }
-        });
-
-        if(validSaleOrder.length !== 0) {
-          const result: SaleOrderApiResponse = {
-            message: `Sale orders found`,
-            sale_order: validSaleOrder,
-            statusCode: 200
-          }
-          return result;
-        } else {
-          const result: SaleOrderApiResponse = {
-            message: `Sale orders not found`,
-            statusCode: 404
-          }
-          return result;
-        }
-      } else if(searchReqbody.orderId) {
-        const validSaleOrder = await this.prismaDB.saleOrder.findUnique({
-          where: {
-            orderId: parseInt(searchReqbody.orderId)
-          }
-        });
-        if(validSaleOrder) {
-          const result: SaleOrderApiResponse = {
-            message: `Sale order found`,
-            sale_order: validSaleOrder,
-            statusCode: 200
-          }
-          return result;
-        } else {
-          const result: SaleOrderApiResponse = {
-            message: `Sale order not found`,
-            statusCode: 404
-          }
-          return result;
-        }
-      }
-    } catch (error) {
-      console.log(error);
-      const result: SaleOrderApiResponse = {
-        message: `Internal server error`,
-        statusCode: 500
-      }
-      return result;
-    }
-  };
-
-  async findAllSaleOrders(): Promise<SaleOrderApiResponse> {
-    try {
-      const allSaleOrders = await this.prismaDB.saleOrder.findMany();
-      if(allSaleOrders.length !== 0) {
-        const result: SaleOrderApiResponse = {
-          message: `Sale orders found`,
-          sale_order: allSaleOrders,
-          statusCode: 200
-        }
-        return result;
-      } else {
-        const result: SaleOrderApiResponse = {
-          message: `Sale orders is empty`,
-          statusCode: 404
-        }
-        return result;
-      }
-    } catch (error) {
-      console.log(error);
-      const result: SaleOrderApiResponse = {
-        message: `Internal server error`,
-        statusCode: 500
-      }
-      return result;
-    }
-  }
 }
 
 

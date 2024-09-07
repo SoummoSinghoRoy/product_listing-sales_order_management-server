@@ -55,7 +55,7 @@ export class ProductService {
 
   async findAllProducts(pageNumber: string): Promise<ProductApiResponse> {
     try {
-      const productsPerPage = 2;
+      const productsPerPage = 30;
       const page = parseInt(pageNumber) || 1;
       const products = await this.prismaDB.product.findMany({
         skip: (page - 1) * productsPerPage,
