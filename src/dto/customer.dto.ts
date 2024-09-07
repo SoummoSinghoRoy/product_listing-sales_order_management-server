@@ -15,11 +15,17 @@ export class UpdateCustomerDto extends PartialType(CreateCustomerDto) {}
 
 export class CustomerApiResponse extends UserApiResponse {
   message: string;
-  customer?: CustomerDto | CustomerDto[];
+  customer?: CustomerDto | AllCustomersDto;
   statusCode: number;
 }
 
 export class CustomerDto extends UserDto {
   contact_no?: string;
   address?: string;
+}
+
+export class AllCustomersDto {
+  allCustomers: CustomerDto[];
+  totalCustomers: number;
+  totalPages: number;
 }

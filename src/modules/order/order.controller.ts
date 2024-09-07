@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Post, Req, Res, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Post, Query, Req, Res, UseGuards } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { OrderService } from './order.service';
 import { AuthGuard } from 'src/guards/auth.guard';
@@ -40,11 +40,10 @@ export class OrderController {
     }
   };
 
-  // need to apply pagination
   @Get('/all')
-  async allOrdersListOfAllCustomers(@Res() res: Response): Promise<void> {
+  async allOrdersListOfAllCustomers(@Query('pageNumber') pageNumber: string, @Res() res: Response): Promise<void> {
     try {
-      const result = await this.orderService.allOrderOfAllCustomers();
+      const result = await this.orderService.allOrderOfAllCustomers(pageNumber);
       const apiResponse: OrderApiResponse = {
         message: result.message,
         order_details: result.statusCode === 200 && result.order_details,

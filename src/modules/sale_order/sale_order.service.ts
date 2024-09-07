@@ -94,13 +94,23 @@ export class SaleOrderService {
     }
   };
 
-  async findAllSaleOrders(): Promise<SaleOrderApiResponse> {
+  async findAllSaleOrders(pageNumber: string): Promise<SaleOrderApiResponse> {
     try {
-      const allSaleOrders = await this.prismaDB.saleOrder.findMany();
-      if(allSaleOrders.length !== 0) {
+      const salesOrderPerPage = 30;
+      const page = parseInt(pageNumber) || 1;
+      const salesOrders = await this.prismaDB.saleOrder.findMany({
+        skip: (page - 1) * salesOrderPerPage,
+        take: salesOrderPerPage
+      });
+      const totalSalesOrder = await this.prismaDB.saleOrder.count();
+      if(salesOrders.length !== 0) {
         const result: SaleOrderApiResponse = {
           message: `Sale orders found`,
-          sale_order: allSaleOrders,
+          sale_order: {
+            allSalesOrder: salesOrders,
+            totalSalesOrder,
+            totalPages: Math.ceil(totalSalesOrder / salesOrderPerPage)
+          },
           statusCode: 200
         }
         return result;
@@ -341,6 +351,3 @@ export class SaleOrderService {
   };
 }
 
-
-// single sale order niye kaj korte hobe.
-// all customers, orders(admin end e) & sale order a pagination rakhte hobe.

@@ -55,9 +55,9 @@ export class SaleOrderController {
   };
 
   @Get('/all')
-  async retrieveAllSalesOrders(@Res() res: Response): Promise<void> {
+  async retrieveAllSalesOrders(@Query('pageNumber') pageNumber: string, @Res() res: Response): Promise<void> {
     try {
-      const result = await this.saleOrderService.findAllSaleOrders();
+      const result = await this.saleOrderService.findAllSaleOrders(pageNumber);
       const apiResponse: SaleOrderApiResponse = {
         message: result.message,
         sale_order: result.statusCode === 200 && result.sale_order,
@@ -92,7 +92,7 @@ export class SaleOrderController {
       }
       res.json(apiResponse);
     }
-  }
+  };
 
   @Get('/queries')
   async retrieveSaleOrderByPaymentStatusOrOrderId(@Body() reqBody: SaleOrderCheckReqBody, @Res() res: Response): Promise<void> {
@@ -112,7 +112,7 @@ export class SaleOrderController {
       }
       res.json(apiResponse);
     }
-  }
+  };
 
   @Patch('/delivery/:saleOrderId')
   async orderDeliveryConfirmation (@Param() params: any, @Body() reqBody: DeliveryConfirmationReqDto, @Res() res: Response): Promise<void> {
@@ -172,5 +172,5 @@ export class SaleOrderController {
       }
       res.json(apiResponse);
     }
-  }
+  };
 }

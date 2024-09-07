@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Patch, Post, Req, Res, UseGuards, UsePipes } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Patch, Post, Query, Req, Res, UseGuards, UsePipes } from '@nestjs/common';
 import { Response, Request } from 'express';
 import { CustomerService } from './customer.service';
 import { CreateCustomerDto, CustomerApiResponse, UpdateCustomerDto } from 'src/dto/customer.dto';
@@ -42,9 +42,9 @@ export class CustomerController {
   };
 
   @Get('/all')
-  async allCustomersList(@Res() res: Response): Promise<void> {
+  async allCustomersList(@Query('pageNumber') pageNumber: string, @Res() res: Response): Promise<void> {
     try {
-      const result = await this.customerService.allCustomers();
+      const result = await this.customerService.getAllCustomers(pageNumber);
       const apiResponse: CustomerApiResponse = {
         message: result.message,
         customer: result.statusCode === 200 && result.customer,

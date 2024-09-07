@@ -82,9 +82,13 @@ export class OrderService {
     }
   };
 
-  async allOrderOfAllCustomers(): Promise<OrderApiResponse> {
+  async allOrderOfAllCustomers(pageNumber: string): Promise<OrderApiResponse> {
     try {
+      const ordersPerPage = 1;
+      const page = parseInt(pageNumber) || 1;
       const allCustomersOrders = await this.prismaDB.order.findMany({
+        skip: (page - 1) * ordersPerPage,
+        take: ordersPerPage,
         include: {
           customer: true,
           cart: {
@@ -99,10 +103,15 @@ export class OrderService {
         }
       });
 
+      const totalOrders = await this.prismaDB.order.count();
       if(allCustomersOrders.length !== 0) {
         const result: OrderApiResponse = {
           message: `All orders retrieve successfully`,
-          order_details: allCustomersOrders,
+          order_details: {
+            allOrders: allCustomersOrders,
+            totalOrders,
+            totalPages: Math.ceil(totalOrders / ordersPerPage)
+          },
           statusCode: 200
         }
         return result;

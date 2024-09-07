@@ -97,9 +97,13 @@ export class CustomerService {
     }
   };
 
-  async allCustomers(): Promise<CustomerApiResponse> {
+  async getAllCustomers(pageNumber: string): Promise<CustomerApiResponse> {
     try {
+      const customersPerPage = 1;
+      const page = parseInt(pageNumber) || 1;      
       const customers = await this.primsaDB.customer.findMany({
+        skip: (page - 1) * customersPerPage,
+        take: customersPerPage,
         include: {
           user: {
             select: {
@@ -109,14 +113,20 @@ export class CustomerService {
               role: true
             }
           },
-          cart: true,
           order: true
         }
       });
+      console.log(customers);
+      
+      const totalCustomers = await this.primsaDB.customer.count();
       if(customers.length !== 0) {
         const result: CustomerApiResponse = {
           message: `Customers successfully retrieve`,
-          customer: customers,
+          customer: {
+            allCustomers: customers,
+            totalCustomers,
+            totalPages: Math.ceil(totalCustomers) / customersPerPage 
+          },
           statusCode: 200
         }
         return result;
