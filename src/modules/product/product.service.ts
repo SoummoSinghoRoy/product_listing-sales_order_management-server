@@ -126,6 +126,13 @@ export class ProductService {
 
   async searchProduct(searchTerm: string): Promise<ProductApiResponse> {
     try {
+      if(!searchTerm) {
+        const result: ProductApiResponse = {
+          message: `Use valid search term`,
+          statusCode: 403
+        }
+        return result;
+      }
       const products = await this.prismaDB.product.findMany({
         where: {
           OR: [
@@ -157,7 +164,7 @@ export class ProductService {
       }
       return result;
     }
-  }
+  };
 
   async updateProduct(productId: string, productEditReqData: CreateProductDto, productFile: Express.Multer.File): Promise<ProductApiResponse> {
     try {

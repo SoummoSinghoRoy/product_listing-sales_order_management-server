@@ -175,6 +175,47 @@ export class OrderService {
     }
   };
 
+  async searchOrder(searchTerm: string): Promise<OrderApiResponse> {
+    try {
+      if(!searchTerm) {
+        const result: OrderApiResponse = {
+          message: `Use valid search term`,
+          statusCode: 403
+        }
+        return result;
+      }
+      const orders = await this.prismaDB.order.findMany({
+        where: {
+          order_date: {
+            contains: searchTerm
+          }
+        }
+      });
+      
+      if(orders.length !== 0) {
+        const result: OrderApiResponse = {
+          message: `orders retrieved successfully`,
+          order_details: orders,
+          statusCode: 200
+        }
+        return result;
+      } else {
+        const result: OrderApiResponse = {
+          message: `Order not found`,
+          statusCode: 404
+        }
+        return result;
+      }
+    } catch (error) {
+      console.log(error);
+      const result: OrderApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      return result;
+    }
+  };
+
   async allOrderOfSingleCustomer(customerId: string): Promise<OrderApiResponse> {
     try {
       const validCustomer = await this.prismaDB.customer.findUnique({

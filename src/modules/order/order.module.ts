@@ -14,7 +14,8 @@ export class OrderModule implements NestModule {
     consumer
             .apply(IsAdminMiddleware)
             .forRoutes(
-              { path: 'order/all', method: RequestMethod.GET }
+              { path: 'order/all', method: RequestMethod.GET },
+              { path: 'order/search', method: RequestMethod.GET }
             )
   }
 }
