@@ -16,7 +16,7 @@ export class DtoValidationResult {
 
 export class ProductApiResponse {
   message: string;
-  product?: ProductDto | AllProductsDto
+  product?: ProductDto | AllProductsDto | ProductDto[]
   error?: object;
   statusCode: number;
 }

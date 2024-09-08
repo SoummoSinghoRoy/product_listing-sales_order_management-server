@@ -39,6 +39,10 @@ model Product {
   sku             String
   thumbnail       String
   cart_item       CartItem[] @relation()
+
+  @@index([name])
+  @@index([brand])
+  @@index([sku])
 }
 
 model CartItem {
@@ -69,13 +73,14 @@ model Order {
   cartId          Int        @unique()
   order_amount    Int
   order_date      String
-  order_status    String
+  order_status    String     @default("accepted")
   shipping_address String
   payment_method   String    @default("cash")
   sale_order      SaleOrder? @relation()
+
+  @@index([order_date])
 }
 
-// delivery hoye gele delivered dekhabe
 model SaleOrder {
   id            Int      @id @default(autoincrement())
   order         Order    @relation(fields: [orderId], references: [id])

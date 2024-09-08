@@ -79,6 +79,26 @@ export class ProductController {
     }
   };
 
+  @Get('/search')
+  async searchProduct(@Query('searchTerm') searchTerm: string, @Res() res: Response): Promise<void> {
+    try {
+      const result = await this.productService.searchProduct(searchTerm);
+      const apiResponse: ProductApiResponse = {
+        message: result.message,
+        product: result.statusCode === 200 && result.product,
+        statusCode: result.statusCode,
+      }
+      res.json(apiResponse);
+    } catch (error) {
+      console.log(error);
+      const apiResponse: ProductApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      res.json(apiResponse);
+    }
+  };
+
   @Get('/single/:id')
   async getSingleProduct(@Param() params: any, @Res() res: Response): Promise<void> {
     try {

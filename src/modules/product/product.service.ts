@@ -124,6 +124,41 @@ export class ProductService {
     }
   };
 
+  async searchProduct(searchTerm: string): Promise<ProductApiResponse> {
+    try {
+      const products = await this.prismaDB.product.findMany({
+        where: {
+          OR: [
+            {name: {contains: searchTerm}},
+            {brand: {contains: searchTerm}},
+            {sku: {contains: searchTerm}}
+          ]
+        }
+      });
+      if(products.length !== 0) {
+        const result: ProductApiResponse = {
+          message: `Products retrieved successfully`,
+          statusCode: 200,
+          product: products
+        }
+        return result;
+      } else {
+        const result: ProductApiResponse = {
+          message: `Product not found`,
+          statusCode: 404
+        }
+        return result;
+      }
+    } catch (error) {
+      console.log(error);
+      const result: ProductApiResponse = {
+        message: `Internal server error`,
+        statusCode: 500
+      }
+      return result;
+    }
+  }
+
   async updateProduct(productId: string, productEditReqData: CreateProductDto, productFile: Express.Multer.File): Promise<ProductApiResponse> {
     try {
       const product = await this.prismaDB.product.findUnique({
