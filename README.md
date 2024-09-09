@@ -15,7 +15,7 @@ This service provides a robust solution for businesses to efficiently list, mana
 * Order management: This service offer to manage order. Whether the order is created by the customer or the admin! manage all required action by admin.
 * Sale order management: This service offer to generate sale alongwith manage all required action by admin. 
 
-      >Additional features
+      > Additional features
       * Product searching: This is offering to get the product details by product name, brand name & sku.
       * Order searching: This is offering to get the order detail inforamtion by order date.
       * Pagination: Products list pagination for all type of user. And order, customers list & sales order pagination for admin end.
