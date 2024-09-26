@@ -4,12 +4,14 @@ import * as bcrypt from 'bcrypt';
 import { CreateUserDto, LoginDto, UpdatePasswordDto, UserApiResponse } from 'src/dto/user.dto';
 import { JwtAuthService } from 'src/jwt/jwt.service';
 import { CustomerApiResponse } from 'src/dto/customer.dto';
+import { WinstonLogger } from 'src/logger/winston-logger.service';
 
 @Injectable()
 export class UserService {
   constructor(
     private prismaDB: DatabaseService,
-    private jwtService: JwtAuthService
+    private jwtService: JwtAuthService,
+    private logger: WinstonLogger
   ) {}
   async createUser(createReqData: CreateUserDto): Promise<UserApiResponse> {
     try {
@@ -71,12 +73,14 @@ export class UserService {
               authenticated: true,
               statusCode: 200
             }
+            this.logger.log(`User successfully logged in & Token - ${token}`);
             return result;
           } else if(validUser.role === 'customer' && validUser.customer.account_status !== "active") {
             const result: UserApiResponse = {
               message: `Your account isn't active. Please contact with support for re-active`,
               statusCode: 403
             }
+            this.logger.log(`User try to logged in`)
             return result;
           } else if(validUser.role === 'admin') {
             const payload = {
@@ -92,6 +96,7 @@ export class UserService {
               authenticated: true,
               statusCode: 200
             }
+            this.logger.log(`User successfully logged in & Token - ${token}`);
             return result;
           }
         } else {
@@ -99,6 +104,7 @@ export class UserService {
             message: `Incorrect password`,
             statusCode: 401
           }
+          this.logger.log(`User provide wrong password`)
           return result; 
         }
       } else {
@@ -106,6 +112,7 @@ export class UserService {
           message: `Email is wrong`,
           statusCode: 401
         }
+        this.logger.log(`User provide wrong email`)
         return result;
       }
     } catch (error) {
@@ -114,6 +121,7 @@ export class UserService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error)
       return result;
     }
   };
