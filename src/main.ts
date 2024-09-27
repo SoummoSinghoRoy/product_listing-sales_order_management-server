@@ -5,7 +5,7 @@ import { DatabaseModule } from './database/database.module';
 import { WinstonLogger } from './logger/winston-logger.service';
 
 async function bootstrap() {
-  const PORT = 8282;
+  const PORT = process.env.PORT || 8282;
   const app = await NestFactory.create(AppModule, {
     logger: new WinstonLogger()
   });
