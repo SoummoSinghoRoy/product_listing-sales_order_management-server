@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import * as moment from 'moment-timezone';
 import { DatabaseService } from 'src/database/database.service';
 import { CreateOrderDto, OrderApiResponse } from 'src/dto/order.dto';
+import { WinstonLogger } from 'src/logger/winston-logger.service';
 
 @Injectable()
 export class OrderService {
-  constructor(private prismaDB: DatabaseService) {}
+  constructor(private prismaDB: DatabaseService, private logger: WinstonLogger) {}
 
   async acceptOrder(orderCreateReqBody: CreateOrderDto, cartId: string): Promise<OrderApiResponse> {
     try {
@@ -64,12 +65,14 @@ export class OrderService {
           },
           statusCode: 200
         }
+        this.logger.log(`Order placed successfully & update cart_status of cart`);
         return result;
       } else {
         const result: OrderApiResponse = {
           message: `Cart is invalid`,
           statusCode: 404
         }
+        this.logger.log(`Invalid cart`);
         return result;
       }
     } catch (error) {
@@ -78,6 +81,7 @@ export class OrderService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   };
@@ -114,12 +118,14 @@ export class OrderService {
           },
           statusCode: 200
         }
+        this.logger.log(`Successfully retrieve orders with customers, cart & cart items details`);
         return result;
       } else {
         const result: OrderApiResponse = {
           message: `Orders empty`,
           statusCode: 404
         }
+        this.logger.log(`Orders empty`);
         return result;
       }
     } catch (error) {
@@ -128,6 +134,7 @@ export class OrderService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   };
@@ -157,12 +164,14 @@ export class OrderService {
           order_details: validOrder,
           statusCode: 200
         }
+        this.logger.log(`Single order found`);
         return result;
       } else {
         const result: OrderApiResponse = {
           message: `Order not valid`,
           statusCode: 404
         }
+        this.logger.log(`Invalid order`)
         return result;
       }
     } catch (error) {
@@ -171,6 +180,7 @@ export class OrderService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   };
@@ -198,12 +208,14 @@ export class OrderService {
           order_details: orders,
           statusCode: 200
         }
+        this.logger.log(`Orders retrive successfully by search keyword`);
         return result;
       } else {
         const result: OrderApiResponse = {
           message: `Order not found`,
           statusCode: 404
         }
+        this.logger.log(`Orders not found by search keyword`);
         return result;
       }
     } catch (error) {
@@ -212,6 +224,7 @@ export class OrderService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   };
@@ -247,12 +260,14 @@ export class OrderService {
             order_details: orders,
             statusCode: 200
           }
+          this.logger.log(`Order found for this customer`);
           return result;
         } else {
           const result: OrderApiResponse = {
             message: `Order is empty`,
             statusCode: 404
           }
+          this.logger.log(`Order not found for this customer`);
           return result;
         }
       } else {
@@ -260,6 +275,7 @@ export class OrderService {
           message: `Customer not valid`,
           statusCode: 404
         }
+        this.logger.log(`Trying to get order by invalid customer`);
         return result;
       }
     } catch (error) {
@@ -268,6 +284,7 @@ export class OrderService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   };
@@ -328,6 +345,7 @@ export class OrderService {
               message: `Accepted order cancelation request`,
               statusCode: 200
             }
+            this.logger.log(`Requesting to cancel order & accepted request`);
             return result;
           }
         }
@@ -336,12 +354,14 @@ export class OrderService {
           message: `No longer accepted cancel request`,
           statusCode: 405
         }
+        this.logger.log(`Requesting to cancel order & not accepted request`);
         return result;
       } else {
         const result: OrderApiResponse = {
           message: `Invalid order`,
           statusCode: 404
         }
+        this.logger.log(`Requested order not valid`);
         return result;
       }
     } catch (error) {
@@ -350,6 +370,7 @@ export class OrderService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   };

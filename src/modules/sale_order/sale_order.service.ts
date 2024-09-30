@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import * as moment from 'moment';
 import { DatabaseService } from 'src/database/database.service';
 import { DeliveryConfirmationReqDto, SaleOrderCheckReqBody, DueUpdateReqDto, QueryReqEntitiesDto, SaleOrderApiResponse, SaleOrderCreateDto } from 'src/dto/sale_order.dto';
+import { WinstonLogger } from 'src/logger/winston-logger.service';
 
 @Injectable()
 export class SaleOrderService {
-  constructor(private prismaDB: DatabaseService) {}
+  constructor(private prismaDB: DatabaseService, private logger: WinstonLogger) {}
 
   async handleSaleOrder(reqQuery: QueryReqEntitiesDto, reqBody?: SaleOrderCreateDto): Promise<SaleOrderApiResponse> {
     try {
@@ -55,6 +56,7 @@ export class SaleOrderService {
             sale_order: sale_order,
             statusCode: 200
           }
+          this.logger.log(`Requesting to sale the order & approved this`);
           return result;
         } else if (reqQuery.action === 'reject') {
           await this.prismaDB.order.update({
@@ -69,12 +71,14 @@ export class SaleOrderService {
             message: `Order is rejected`,
             statusCode: 200
           }
+          this.logger.log(`Requesting to reject order`);
           return result;
         } else {
           const result: SaleOrderApiResponse = {
             message: `Request denied`,
             statusCode: 403
           }
+          this.logger.log(`Requesting to sale the order denied`);
           return result;
         }
       } else {
@@ -82,6 +86,7 @@ export class SaleOrderService {
           message: `Order not valid`,
           statusCode: 404
         }
+        this.logger.log(`Requested order is not valid`);
         return result;
       }
     } catch (error) {
@@ -90,6 +95,7 @@ export class SaleOrderService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   };
@@ -113,12 +119,14 @@ export class SaleOrderService {
           },
           statusCode: 200
         }
+        this.logger.log(`Retrieve all sale order successfully`);
         return result;
       } else {
         const result: SaleOrderApiResponse = {
           message: `Sale orders is empty`,
           statusCode: 404
         }
+        this.logger.log(`Sale order empty`);
         return result;
       }
     } catch (error) {
@@ -127,6 +135,7 @@ export class SaleOrderService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   };
@@ -160,12 +169,14 @@ export class SaleOrderService {
           sale_order: validSaleOrder,
           statusCode: 200
         }
+        this.logger.log(`Retrieve single sale order`);
         return result;
       } else {
         const result: SaleOrderApiResponse = {
           message: `Sale order not valid`,
           statusCode: 404
         }
+        this.logger.log(`Sale order is not valid`);
         return result;
       }
     } catch (error) {
@@ -174,6 +185,7 @@ export class SaleOrderService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   };
@@ -193,12 +205,14 @@ export class SaleOrderService {
             sale_order: validSaleOrder,
             statusCode: 200
           }
+          this.logger.log(`Retrieve sales order by search keyword`);
           return result;
         } else {
           const result: SaleOrderApiResponse = {
             message: `Sale order not found`,
             statusCode: 404
           }
+          this.logger.log(`Sales order not found by search keyword`);
           return result;
         }
       } else if(searchReqbody.payment_status) {
@@ -214,12 +228,14 @@ export class SaleOrderService {
             sale_order: validSaleOrder,
             statusCode: 200
           }
+          this.logger.log(`Retrieve sales order by search keyword`);
           return result;
         } else {
           const result: SaleOrderApiResponse = {
             message: `Sale orders not found`,
             statusCode: 404
           }
+          this.logger.log(`Sales order not found by search keyword`);
           return result;
         }
       } else if(searchReqbody.orderId) {
@@ -234,12 +250,14 @@ export class SaleOrderService {
             sale_order: validSaleOrder,
             statusCode: 200
           }
+          this.logger.log(`Retrieve sales order by search keyword`);
           return result;
         } else {
           const result: SaleOrderApiResponse = {
             message: `Sale order not found`,
             statusCode: 404
           }
+          this.logger.log(`Sales order not found by search keyword`);
           return result;
         }
       }
@@ -249,6 +267,7 @@ export class SaleOrderService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   };
@@ -282,12 +301,14 @@ export class SaleOrderService {
             message: `Order successfully delivered`,
             statusCode: 200
           }
+          this.logger.log(`Order successfully delivered to customer`);
           return result;
         } else {
           const result: SaleOrderApiResponse = {
             message: `Request denied`,
             statusCode: 403
           }
+          this.logger.log(`Order delivery request is denied`);
           return result;
         }
       } else {
@@ -295,6 +316,7 @@ export class SaleOrderService {
           message: `Sale order not valid`,
           statusCode: 404
         }
+        this.logger.log(`Selected sale order for delivery is not valid`);
         return result;
       }
     } catch (error) {
@@ -303,6 +325,7 @@ export class SaleOrderService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   };
@@ -332,12 +355,14 @@ export class SaleOrderService {
           sale_order: updatedSaleOrder,
           statusCode: 200
         }
+        this.logger.log(`Due updated for selected sale order`);
         return result;
       } else {
         const result: SaleOrderApiResponse = {
           message: `Sale order not valid`,
           statusCode: 404
         }
+        this.logger.log(`Selected sale order is not valid`);
         return result;
       }
     } catch (error) {
@@ -346,6 +371,7 @@ export class SaleOrderService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   };

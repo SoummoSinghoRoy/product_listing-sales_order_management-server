@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
 import { DatabaseService } from 'src/database/database.service';
 import { CreateCustomerDto, CustomerApiResponse, UpdateCustomerDto } from 'src/dto/customer.dto';
+import { WinstonLogger } from 'src/logger/winston-logger.service';
 
 @Injectable()
 export class CustomerService {
-  constructor(private primsaDB: DatabaseService) {}
+  constructor(private primsaDB: DatabaseService, private logger: WinstonLogger) {}
 
   async createCustomer(customerReqData: CreateCustomerDto): Promise<CustomerApiResponse> {
     try {
@@ -39,6 +40,7 @@ export class CustomerService {
           role: customerAsUser.user.role
         }
       }
+      this.logger.log(`Customer account created`);
       return result; 
     } catch (error) {
       console.log(error);
@@ -46,6 +48,7 @@ export class CustomerService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   };
@@ -86,6 +89,7 @@ export class CustomerService {
           address: updatedCustomerWithUser.address
         }
       }
+      this.logger.log(`Customer account updated`);
       return result; 
     } catch (error) {
       console.log(error);
@@ -93,6 +97,7 @@ export class CustomerService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   };
@@ -116,7 +121,6 @@ export class CustomerService {
           order: true
         }
       });
-      console.log(customers);
       
       const totalCustomers = await this.primsaDB.customer.count();
       if(customers.length !== 0) {
@@ -129,12 +133,14 @@ export class CustomerService {
           },
           statusCode: 200
         }
+        this.logger.log(`Customers successfully retrieve`)
         return result;
       } else {
         const result: CustomerApiResponse = {
           message: `Customers empty`,
           statusCode: 404
         }
+        this.logger.log(`Customers empty`)
         return result;
       }
     } catch (error) {
@@ -143,6 +149,7 @@ export class CustomerService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   };
@@ -167,12 +174,14 @@ export class CustomerService {
           message: `Account successfully disabled`,
           statusCode: 200
         }
+        this.logger.log(`Customer requested to disabled account`);
         return result;
       } else {
         const result: CustomerApiResponse = {
           message: `Customer not valid`,
           statusCode: 404
         }
+        this.logger.log(`Customer not valid`);
         return result;
       }
     } catch (error) {
@@ -181,6 +190,7 @@ export class CustomerService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   }

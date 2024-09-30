@@ -4,9 +4,10 @@ import { SaleOrderController } from './sale_order.controller';
 import { JwtAuthService } from 'src/jwt/jwt.service';
 import { IsAdminMiddleware } from 'src/middlewares/isAdmin.middleware';
 import { SaleOrderValidationService } from 'src/custom-validation/sale_order.validation';
+import { WinstonLogger } from 'src/logger/winston-logger.service';
 
 @Module({
-  providers: [SaleOrderService, JwtAuthService, SaleOrderValidationService],
+  providers: [SaleOrderService, JwtAuthService, WinstonLogger, SaleOrderValidationService],
   controllers: [SaleOrderController]
 })
 export class SaleOrderModule implements NestModule {

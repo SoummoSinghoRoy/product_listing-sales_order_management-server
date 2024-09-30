@@ -13,6 +13,7 @@ export class UserService {
     private jwtService: JwtAuthService,
     private logger: WinstonLogger
   ) {}
+
   async createUser(createReqData: CreateUserDto): Promise<UserApiResponse> {
     try {
       const hashedPassword = await bcrypt.hash(createReqData.password, 8);
@@ -34,6 +35,7 @@ export class UserService {
           role: user.role
         }
       }
+      this.logger.log(`User created successfully`);
       return result;
     } catch (error) {
       console.log(error);
@@ -41,9 +43,11 @@ export class UserService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error)
       return result;
     }
   };
+
   async userLogin(loginreqData: LoginDto): Promise<CustomerApiResponse | UserApiResponse> {
     try {
       const validUser = await this.prismaDB.user.findUnique({
@@ -125,6 +129,7 @@ export class UserService {
       return result;
     }
   };
+
   async userLogout(): Promise<UserApiResponse> {
     try {
       const result: UserApiResponse = {
@@ -132,6 +137,7 @@ export class UserService {
         authenticated: false,
         statusCode: 200
       }
+      this.logger.log(`User loggedout`);
       return result;
     } catch (error) {
       console.log(error);
@@ -139,9 +145,10 @@ export class UserService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
-  }
+  };
 
   async userPasswordUpdate(updateReqData: UpdatePasswordDto, userId: string): Promise<UserApiResponse> {
     try {
@@ -166,12 +173,14 @@ export class UserService {
             message: `Updated successfully`,
             statusCode: 200
           }
+          this.logger.log(`Password updated successfully`);
           return result;
         } else {
           const result: UserApiResponse = {
             message: `Incorrect password`,
             statusCode: 404
           }
+          this.logger.log(`Input wrong password`);
           return result; 
         }
       }
@@ -181,7 +190,8 @@ export class UserService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
-  }
+  };
 }

@@ -4,9 +4,10 @@ import { CustomerController } from './customer.controller';
 import { JwtAuthService } from 'src/jwt/jwt.service';
 import { IsCustomerMiddleware } from 'src/middlewares/isCustomer.middleware';
 import { IsAdminMiddleware } from 'src/middlewares/isAdmin.middleware';
+import { WinstonLogger } from 'src/logger/winston-logger.service';
 
 @Module({
-  providers: [CustomerService, JwtAuthService],
+  providers: [CustomerService, JwtAuthService, WinstonLogger],
   controllers: [CustomerController]
 })
 export class CustomerModule implements NestModule {

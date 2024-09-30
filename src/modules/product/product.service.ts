@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { DatabaseService } from 'src/database/database.service';
 import { CreateProductDto, ProductApiResponse, UpdateStockApiResponse } from 'src/dto/product.dto';
+import { WinstonLogger } from 'src/logger/winston-logger.service';
 import { unsyncUploadedFile } from 'src/utils/fileUnSync';
 
+// need to add log in product
 @Injectable()
 export class ProductService {
-  constructor(private prismaDB: DatabaseService) { }
+  constructor(private prismaDB: DatabaseService, private logger: WinstonLogger) {}
 
   async createProduct(productCreateReqData: CreateProductDto, productFile: Express.Multer.File): Promise<ProductApiResponse> {
     try {
@@ -42,6 +44,7 @@ export class ProductService {
           thumbnail: product.thumbnail
         }
       }
+      this.logger.log(`Create a new product`);
       return result;
     } catch (error) {
       console.log(error);
@@ -49,6 +52,7 @@ export class ProductService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   };
@@ -71,6 +75,7 @@ export class ProductService {
           totalPages: Math.ceil(totalProducts / productsPerPage)
         }
       }
+      this.logger.log(`Products retrieve successfully`);
       return result;
     } catch (error) {
       console.log(error);
@@ -78,6 +83,7 @@ export class ProductService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   };
@@ -106,12 +112,14 @@ export class ProductService {
             thumbnail: product.thumbnail
           }
         }
+        this.logger.log(`Single product retrieve`);
         return result;
       } else {
         const result: ProductApiResponse = {
           message: `Product not found`,
           statusCode: 404
         }
+        this.logger.log(`Single product not found`);
         return result;
       }
     } catch (error) {
@@ -120,6 +128,7 @@ export class ProductService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   };
@@ -148,12 +157,14 @@ export class ProductService {
           statusCode: 200,
           product: products
         }
+        this.logger.log(`Search products by search term`);
         return result;
       } else {
         const result: ProductApiResponse = {
           message: `Product not found`,
           statusCode: 404
         }
+        this.logger.log(`Product not found by search term`);
         return result;
       }
     } catch (error) {
@@ -162,6 +173,7 @@ export class ProductService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   };
@@ -214,12 +226,14 @@ export class ProductService {
             thumbnail: updatedProduct.thumbnail
           }
         }
+        this.logger.log(`Product updated successfully`);
         return result;
       } else {
         const result: ProductApiResponse = {
           message: `Product not found`,
           statusCode: 404
         }
+        this.logger.log(`Product not found for updating`);
         return result;
       }
     } catch (error) {
@@ -228,6 +242,7 @@ export class ProductService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   };
@@ -259,12 +274,14 @@ export class ProductService {
             sku: updatedStock.sku
           }
         }
+        this.logger.log(`Stock update for selected  product`);
         return result;
       } else {
         const result: UpdateStockApiResponse = {
           message: `Product not found`,
           statusCode: 404
         }
+        this.logger.log(`Selected product not found`);
         return result;
       }
     } catch (error) {
@@ -273,6 +290,7 @@ export class ProductService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   };
@@ -295,12 +313,14 @@ export class ProductService {
           message: `Product deleted successfully`,
           statusCode: 200
         }
+        this.logger.log(`Request to delete product`);
         return result;
       } else {
         const result: ProductApiResponse = {
           message: `Product not found`,
           statusCode: 404
         }
+        this.logger.log(`Requested product not found for delete`);
         return result;
       }
     } catch (error) {
@@ -308,6 +328,7 @@ export class ProductService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   }

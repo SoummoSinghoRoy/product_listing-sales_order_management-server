@@ -2,10 +2,11 @@ import { Injectable } from '@nestjs/common';
 import * as moment from 'moment-timezone';
 import { DatabaseService } from 'src/database/database.service';
 import { AddToCartApiResponse, CreateCartDto } from 'src/dto/cart.dto';
+import { WinstonLogger } from 'src/logger/winston-logger.service';
 
 @Injectable()
 export class CartService {
-  constructor(private prismaDB: DatabaseService) { }
+  constructor(private prismaDB: DatabaseService, private logger: WinstonLogger) { }
 
   async addToCart(createReqData: CreateCartDto, customerId?: number): Promise<AddToCartApiResponse> {
     try {
@@ -14,7 +15,7 @@ export class CartService {
           id: customerId || parseInt(createReqData.customerId)
         }
       });
-
+      this.logger.log(`Customer is valid`)
       if (validCustomer) {
         const date = moment().tz('Asia/Dhaka').format('YYYY-MM-DD');
 
@@ -73,6 +74,7 @@ export class CartService {
               },
               statusCode: 200
             };
+            this.logger.log(`Create a new cart & item added`)
             return result;
           } else if(customerCart && (customerCart.cart_status !== "pending" && customerCart.cart_status === "done")) {
             const createdCart = await this.prismaDB.cart.create({
@@ -115,6 +117,7 @@ export class CartService {
                 },
                 statusCode: 200
               };
+              this.logger.log(`Item added to existing cart`);
               return result;
             }
           } else {
@@ -151,6 +154,7 @@ export class CartService {
               },
               statusCode: 200
             };
+            this.logger.log(`Item added to cart & update cart`)
             return result;
           }
         } else {
@@ -158,6 +162,7 @@ export class CartService {
             message: `Product not valid`,
             statusCode: 404
           }
+          this.logger.log(`Requested product not valid`)
           return result;
         }
       } else {
@@ -165,6 +170,7 @@ export class CartService {
           message: `Customer not valid`,
           statusCode: 404
         }
+        this.logger.log(`Customer not valid`)
         return result;
       }
     } catch (error) {
@@ -173,6 +179,7 @@ export class CartService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   };
@@ -202,12 +209,14 @@ export class CartService {
           },
           statusCode: 200
         }
+        this.logger.log(`Cart items found of pending order`);
         return result;
       } else {
         const result: AddToCartApiResponse = {
           message: `Cart is empty`,
           statusCode: 404
         }
+        this.logger.log(`Cart is empty`);
         return result;
       }
     } catch (error) {
@@ -216,6 +225,7 @@ export class CartService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   };
@@ -272,6 +282,7 @@ export class CartService {
           removedItemId: deletedItem.id,
           statusCode: 200
         };
+        this.logger.log(`Item removed from existing cart`);
         return result;
       }
     } catch (error) {
@@ -280,6 +291,7 @@ export class CartService {
         message: `Internal server error`,
         statusCode: 500
       }
+      this.logger.error(error);
       return result;
     }
   };

@@ -3,9 +3,10 @@ import { ProductService } from './product.service';
 import { ProductController } from './product.controller';
 import { JwtAuthService } from 'src/jwt/jwt.service';
 import { IsAdminMiddleware } from 'src/middlewares/isAdmin.middleware';
+import { WinstonLogger } from 'src/logger/winston-logger.service';
 
 @Module({
-  providers: [ProductService, JwtAuthService],
+  providers: [ProductService, JwtAuthService, WinstonLogger],
   controllers: [ProductController]
 })
 export class ProductModule implements NestModule {
